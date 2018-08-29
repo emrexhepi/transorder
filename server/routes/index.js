@@ -16,8 +16,8 @@ import ffmpegSettings from './api/ffmpeg-settings';
 // create express app
 const app = express();
 
-// dedlare transcorder
-const transcorder = new Transcorder();
+// declare transcorder
+const transcorder = new Transcorder(db);
 // pass transcorder through app
 app.set('transcorder', transcorder);
 
