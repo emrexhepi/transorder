@@ -1,7 +1,11 @@
+// import childProcess from 'child_process';
+// import util from 'util';
+
 import { DateTime } from 'luxon';
 
 class FFMPEG {
-    constructor(settings) {
+    constructor(stream, settings) {
+        this.stream = stream;
         this.settings = settings;
     }
 
@@ -11,7 +15,7 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record() {
-        console.log('FFMPEG - rec. started at: ', DateTime.local());
+        console.log(`FFMPEG started recording ${this.stream.name} at ${DateTime.local().toISOTime()}`);
     }
     
     // stop ffmpeg recording instances

@@ -19,8 +19,14 @@
   ],
   "streams": [
     {
-      "streamName": "RTK",
-      "streamLink": "http://rtk.com",
+      "name": "RTK",
+      "path": "http://rtk.com",
+      "record": true,
+      "details": {}
+    },
+    {
+      "name": "TV21",
+      "path": "http://TV21.com",
       "record": true,
       "details": {}
     }

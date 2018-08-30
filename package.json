@@ -1,7 +1,7 @@
 {
-  "name": "react-expressjs",
-  "version": "4.0.0",
-  "description": "Boilerplate for ReactJS project with ExpressJS server",
+  "name": "transcorder",
+  "version": "0.0.1",
+  "description": "RaspberryPi based hardware accelerated FFMPEG transcoder and recorder",
   "main": "server/bin/server.js",
   "scripts": {
     "dev": "webpack-dev-server --config webpack/client.dev.js",

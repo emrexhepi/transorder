@@ -1,53 +1,55 @@
 // import packages
-// import childProcess from 'child_process';
-// import util from 'util';
-
-import * as timeHelpers from './lib/timeHelpers';
+import Scheduler from "./lib/Scheduler";
 
 class Transcorder {
     constructor(db) {
         // set init
-        this.FFMPEGInstances = [];
+        this.schedulers = [];
 
         // set db as object property
         this.db = db;
 
-        // initiate FFMPEG Manager
-
-        // init functions
-        this.loadSettingsFromDB();
-
         // Start Transcoding
-        this.start();
+        this.init();
     }
 
-    start() {
-        console.log('Transcoding started!\n');
+    init() {
+        console.log('Transcoding is initiated!\n');
+
+        // Initiate scheduler for every stream
+
+        // get streams
+        const streams = this.getStreams();
+
+        // get ffmpegSettings
+        const ffmpegSettings = this.getFFMPEGSettings();
+
+        // Create scheulders from streams
+        streams.forEach((stream) => {
+            const scheduler = new Scheduler(stream, ffmpegSettings);
+            
+            this.schedulers.push({
+                name: stream.name,
+                scheduler,
+            });
+        });
+
+        // console.log(this.schedules);
     }
 
-    // start recording schedule
-    startRecScheduler() {
-        // create FFMPEG Instance
-        const nextTimeSlot = timeHelpers.diffToNextTimeSlot(this.ffSettings.recordDuration);
-        
-        // call when next time slot
-        setTimeout(() => {
-            console.log('diffToNextTimeSlot:', nextTimeSlot, '\n');
-            timeHelpers.diffToNextTimeSlot(this.ffSettings.recordDuration);
-        }, timeHelpers.secondsToMilliseconds(nextTimeSlot));
+    // gets streams from database
+    getStreams() {
+        const streams = this.db.get('streams').value();
+        return streams;
     }
 
-    loadSettingsFromDB() {
-        // get ffmpeg settings from database
-        this.ffSettings = this.db.get('settings')
-            .filter({
-                name: 'FFMPEG',
-            })
-            .value()[0].data;
-    }
+    // returns ffmpeg settings from database
+    getFFMPEGSettings() {
+        const ffmpegSettings = this.db.get('settings').find({
+            name: 'FFMPEG',
+        }).value();
 
-    createFFMPEGInstance(channelName, ) {
-
+        return ffmpegSettings;
     }
 }
 
