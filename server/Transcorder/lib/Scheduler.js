@@ -1,8 +1,9 @@
 import FFMPEG from './FFMPEGMan';
 
 class Scheduler {
-    constructor(stream, ffmpegSettings) {
+    constructor(stream, schedulerSettings, ffmpegSettings) {
         this.stream = stream;
+        this.settings = schedulerSettings;
         this.ffmpegSettings = ffmpegSettings;
 
         // start
@@ -10,7 +11,7 @@ class Scheduler {
     }
 
     init() {
-        if (this.stream.record) {
+        if (this.stream.settings.record) {
             console.log(`\nScheduler_${this.stream.name} is initiated!`);
 
             const ffmpeg = new FFMPEG(this.stream, this.ffmpegSettings);

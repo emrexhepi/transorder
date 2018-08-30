@@ -1,7 +1,7 @@
 {
   "settings": [
     {
-      "name": "FFMPEG",
+      "name": "ffmpeg",
       "data": {
         "size": "700x540",
         "encoder": "omx",
@@ -11,9 +11,11 @@
       }
     },
     {
-      "name": "transcorder",
+      "name": "scheduler",
       "data": {
-        "recording": true
+        "preScheduleScrambleSecs": 0,
+        "preScheduleRecordSecs": 0,
+        "prolongDurationSecs": 0
       }
     }
   ],
@@ -22,13 +24,10 @@
       "name": "RTK",
       "path": "http://rtk.com",
       "record": true,
-      "details": {}
-    },
-    {
-      "name": "TV21",
-      "path": "http://TV21.com",
-      "record": true,
-      "details": {}
+      "settings": {
+        "record": true,
+        "duration": 60
+      }
     }
   ],
   "user": {},

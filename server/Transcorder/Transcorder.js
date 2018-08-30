@@ -1,5 +1,5 @@
 // import packages
-import Scheduler from "./lib/Scheduler";
+import Scheduler from './lib/Scheduler';
 
 class Transcorder {
     constructor(db) {
@@ -16,17 +16,20 @@ class Transcorder {
     init() {
         console.log('Transcoding is initiated!\n');
 
-        // Initiate scheduler for every stream
+        // INITIATE Schedulers
 
         // get streams
         const streams = this.getStreams();
 
         // get ffmpegSettings
-        const ffmpegSettings = this.getFFMPEGSettings();
+        const ffmpegSettings = this.getSettingsFromDB('ffmpeg');
+
+        // get scheduler settings
+        const schedulerSettings = this.getSettingsFromDB('scheduler');
 
         // Create scheulders from streams
         streams.forEach((stream) => {
-            const scheduler = new Scheduler(stream, ffmpegSettings);
+            const scheduler = new Scheduler(stream, schedulerSettings, ffmpegSettings);
             
             this.schedulers.push({
                 name: stream.name,
@@ -44,12 +47,12 @@ class Transcorder {
     }
 
     // returns ffmpeg settings from database
-    getFFMPEGSettings() {
-        const ffmpegSettings = this.db.get('settings').find({
-            name: 'FFMPEG',
-        }).value();
+    getSettingsFromDB(settingName) {
+        const settings = this.db.get('settings').find({
+            name: settingName,
+        }).value().data;
 
-        return ffmpegSettings;
+        return settings;
     }
 }
 
