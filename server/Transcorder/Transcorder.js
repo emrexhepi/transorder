@@ -37,7 +37,7 @@ class Transcorder {
             });
         });
 
-        // console.log(this.schedules);
+        // console.log(this.schedulers);
     }
 
     // gets streams from database

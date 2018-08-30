@@ -10,7 +10,6 @@ export const DAY_IN_SECONDS = 86400;
 // //////////////////////////////////////////////////////
 // CONVERTERS
 
-
 // return current time of day in seconds;
 export const convertDateTimeToSeconds = (dateTime) => {
     // calculate time in seconds
@@ -22,7 +21,6 @@ export const convertDateTimeToSeconds = (dateTime) => {
     // return time in seconds
     return timeInSeconds;
 };
-
 
 // converts seconds to datetime
 export const convertTodaySecondsToDateTime = (seconds) => {
@@ -42,11 +40,12 @@ export const convertTodaySecondsToDateTime = (seconds) => {
 
 export const secondsToMilliseconds = seconds => seconds * 1000;
 
+
 // //////////////////////////////////////////////////////
 // GETTERS
 
 // return DateTime time-slot
-export const currentDateTimeSlot = (durationInSeconds) => {
+export const currentDayTimeSlotInSec = (durationInSeconds) => {
     const timeInSeconds = convertDateTimeToSeconds(DateTime.local());
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
@@ -57,9 +56,9 @@ export const currentDateTimeSlot = (durationInSeconds) => {
 };
 
 // return next time-slot
-export const nextDateTimeSlot = (durationInSeconds) => {
+export const nextDayTimeSlotInSec = (durationInSeconds) => {
     // get current time slot
-    const currentTimeSlot = currentDateTimeSlot(durationInSeconds);
+    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds);
 
     // calculate nextTimeSlot
     const nextTimeSlot = currentTimeSlot + durationInSeconds;
@@ -68,9 +67,8 @@ export const nextDateTimeSlot = (durationInSeconds) => {
 };
 
 // return difference to next time slot
-export const diffToNextTimeSlot = durationInSeconds => 
-    nextDateTimeSlot(durationInSeconds) - convertDateTimeToSeconds(DateTime.local());
-
+export const diffToNextTimeSlotInSec = durationInSeconds => 
+nextDayTimeSlotInSec(durationInSeconds) - convertDateTimeToSeconds(DateTime.local());
 
 // Default return current DateTime
 const dateTimeNow = () => DateTime.local();

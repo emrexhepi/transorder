@@ -23,8 +23,7 @@
     {
       "name": "RTK",
       "path": "http://rtk.com",
-      "record": true,
-      "settings": {
+      "schedul": {
         "record": true,
         "duration": 60
       }
