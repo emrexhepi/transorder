@@ -9,6 +9,20 @@
         "fileExtension": ".mp4",
         "recordDuration": 60
       }
+    },
+    {
+      "name": "transcorder",
+      "data": {
+        "recording": true
+      }
+    }
+  ],
+  "streams": [
+    {
+      "streamName": "RTK",
+      "streamLink": "http://rtk.com",
+      "record": true,
+      "details": {}
     }
   ],
   "user": {},

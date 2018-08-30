@@ -6,8 +6,13 @@ import * as timeHelpers from './lib/timeHelpers';
 
 class Transcorder {
     constructor(db) {
+        // set init
+        this.FFMPEGInstances = [];
+
         // set db as object property
         this.db = db;
+
+        // initiate FFMPEG Manager
 
         // init functions
         this.loadSettingsFromDB();
@@ -20,18 +25,9 @@ class Transcorder {
         console.log('Transcoding started!\n');
     }
 
-    // Start ffmpeg recording
-    record() {
-        console.log('FFMPEG Recording starts!');
-    }
-
-    // stop ffmpeg recording instances
-    stopRecord() {
-        console.log('Stoping all recording instances');
-    }
-
     // start recording schedule
     startRecScheduler() {
+        // create FFMPEG Instance
         const nextTimeSlot = timeHelpers.diffToNextTimeSlot(this.ffSettings.recordDuration);
         
         // call when next time slot
@@ -48,6 +44,10 @@ class Transcorder {
                 name: 'FFMPEG',
             })
             .value()[0].data;
+    }
+
+    createFFMPEGInstance(channelName, ) {
+
     }
 }
 
