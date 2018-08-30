@@ -8,19 +8,46 @@ class Transcorder {
     constructor(db) {
         // set db as object property
         this.db = db;
-        // get ffmpeg settings from database
-        this.ffSettings = db.get('settings')
-                            .filter({ name: 'FFMPEG' })
-                            .value()[0].data;
 
-        console.log(timeHelpers.getTimeInSeconds());
+        // init functions
+        this.loadSettingsFromDB();
 
         // Start Transcoding
         this.start();
     }
 
     start() {
-        console.log('Transcoding started!');
+        console.log('Transcoding started!\n');
+    }
+
+    // Start ffmpeg recording
+    record() {
+        console.log('FFMPEG Recording starts!');
+    }
+
+    // stop ffmpeg recording instances
+    stopRecord() {
+        console.log('Stoping all recording instances');
+    }
+
+    // start recording schedule
+    startRecScheduler() {
+        const nextTimeSlot = timeHelpers.diffToNextTimeSlot(this.ffSettings.recordDuration);
+        
+        // call when next time slot
+        setTimeout(() => {
+            console.log('diffToNextTimeSlot:', nextTimeSlot, '\n');
+            timeHelpers.diffToNextTimeSlot(this.ffSettings.recordDuration);
+        }, timeHelpers.secondsToMilliseconds(nextTimeSlot));
+    }
+
+    loadSettingsFromDB() {
+        // get ffmpeg settings from database
+        this.ffSettings = this.db.get('settings')
+            .filter({
+                name: 'FFMPEG',
+            })
+            .value()[0].data;
     }
 }
 

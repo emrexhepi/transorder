@@ -3,6 +3,7 @@
     "rules": {
       "linebreak-style": 0,
       "indent": 0,
+      "no-trailing-spaces": 0,
       "class-methods-use-this" : 0,
       "no-console":"off",
       "react/jsx-filename-extension": [1, {
