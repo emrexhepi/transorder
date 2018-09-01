@@ -6,16 +6,15 @@
         "size": "700x540",
         "encoder": "omx",
         "decoder": "omx",
-        "fileExtension": ".mp4",
-        "recordDuration": 60
+        "fileExtension": ".mp4"
       }
     },
     {
       "name": "scheduler",
       "data": {
-        "preScheduleScrambleSecs": 0,
-        "preScheduleRecordSecs": 0,
-        "prolongDurationSecs": 0
+        "preDescrambleSecs": 0,
+        "preRecordSecs": 0,
+        "afterDurationSecs": 0
       }
     }
   ],
@@ -23,9 +22,9 @@
     {
       "name": "RTK",
       "path": "http://rtk.com",
-      "schedul": {
+      "schedule": {
         "record": true,
-        "duration": 60
+        "duration": 30
       }
     }
   ],

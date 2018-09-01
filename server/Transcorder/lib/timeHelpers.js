@@ -44,6 +44,9 @@ export const secondsToMilliseconds = seconds => seconds * 1000;
 // //////////////////////////////////////////////////////
 // GETTERS
 
+// return local datetime
+export const currentDayTime = () => DateTime.local();
+
 // return DateTime time-slot
 export const currentDayTimeSlotInSec = (durationInSeconds) => {
     const timeInSeconds = convertDateTimeToSeconds(DateTime.local());

@@ -9,23 +9,50 @@ class Scheduler {
 
         // initiate
         console.log(`\nScheduler_${this.stream.name} is initiated!`);
-        if (this.stream.schedul.record) {
-            this.startSchedule();
+        if (this.stream.schedule.record) {
+            this.initSchedule();
         }
     }
 
-    startSchedule() {
-        console.log(`Scheduler_${this.stream.name} is starting schedule`);
+    initSchedule() {
+        console.log(`Scheduler_${this.stream.name} is initiating!`);
         
-        // get next time slot
-        const diffToNextTimeSlot =
-            timeHelpers.diffToNextTimeSlotInSec(this.stream.schedul.duration);
-        
-        setTimeout(this.scheduleRecord, timeHelpers.secondsToMilliseconds(diffToNextTimeSlot));
+        // schedule next record
+        this.scheduleRecord();
     }
 
-    scheduleRecord() {
-        console.log('Scheduler star1ting FFMPEG Record!');
+    scheduleRecord = ()=> {
+        console.log("[schduler.js] - scheduleRecord() ===============================");
+
+        // if recording is not enabled return null
+        if (!this.stream.schedule.record) {
+            return;
+        }
+
+        // start recording
+        this.record();
+
+        // get next time slot
+        const diffToNextTimeSlot =
+            timeHelpers.diffToNextTimeSlotInSec(this.stream.schedule.duration);
+
+        console.log(
+            'Scheduling record for: \t\t',
+            timeHelpers.convertTodaySecondsToDateTime(
+                timeHelpers.nextDayTimeSlotInSec(
+                    this.stream.schedule.duration,
+                ),
+            ).toISO(),
+        );
+        // schedule next record
+        setTimeout(
+            this.scheduleRecord,
+            timeHelpers.secondsToMilliseconds(diffToNextTimeSlot),
+        );
+    }
+
+    record() {
+        console.log('Recording now: \t\t\t', timeHelpers.currentDayTime().toISO());
     }
 }
 
