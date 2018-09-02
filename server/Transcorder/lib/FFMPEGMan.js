@@ -15,12 +15,12 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record() {
-        console.log(`FFMPEG started recording ${this.stream.name} at ${DateTime.local().toISOTime()}`);
+        console.log(`[FMPEGMan.js] - record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
     }
     
     // stop ffmpeg recording instances
     stopRecord() {
-        console.log('Stoping all recording instances');
+        console.log('[FFMPEGMan.js].stopRecord() - stoping all record instances!');
     }
 }
 

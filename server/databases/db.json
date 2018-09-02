@@ -13,7 +13,7 @@
       "name": "scheduler",
       "data": {
         "preDescrambleSecs": 0,
-        "preRecordSecs": 0,
+        "preDurationRecordSecs": 0,
         "afterDurationSecs": 0
       }
     }
@@ -24,7 +24,7 @@
       "path": "http://rtk.com",
       "schedule": {
         "record": true,
-        "duration": 30
+        "duration": 10
       }
     }
   ],

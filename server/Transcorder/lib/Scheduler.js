@@ -1,28 +1,36 @@
 // import FFMPEG from './FFMPEGMan';
 import * as timeHelpers from './timeHelpers';
+import FFMPEG from './FFMPEGMan';
 
 class Scheduler {
     constructor(stream, schedulerSettings, ffmpegSettings) {
         this.stream = stream;
         this.settings = schedulerSettings;
-        this.ffmpegSettings = ffmpegSettings;
+        this.FFMPEG = new FFMPEG(stream, ffmpegSettings);
+        this.timeOutID = null;
 
         // initiate
         console.log(`\nScheduler_${this.stream.name} is initiated!`);
         if (this.stream.schedule.record) {
             this.initSchedule();
+            
+            // test stop schedule and record
+            setTimeout(this.stopSchedule, 60000);
+
+            // restart schedule
+            setTimeout(this.initSchedule, 120000);
         }
     }
 
-    initSchedule() {
+    initSchedule = () => {
         console.log(`Scheduler_${this.stream.name} is initiating!`);
         
         // schedule next record
         this.scheduleRecord();
     }
 
-    scheduleRecord = ()=> {
-        console.log("[schduler.js] - scheduleRecord() ===============================");
+    scheduleRecord = () => {
+        console.log('[schduler.js] - scheduleRecord() ===============================');
 
         // if recording is not enabled return null
         if (!this.stream.schedule.record) {
@@ -37,22 +45,33 @@ class Scheduler {
             timeHelpers.diffToNextTimeSlotInSec(this.stream.schedule.duration);
 
         console.log(
-            'Scheduling record for: \t\t',
+            '[schduler.js] scheduleRecord() - scheduling :',
             timeHelpers.convertTodaySecondsToDateTime(
                 timeHelpers.nextDayTimeSlotInSec(
                     this.stream.schedule.duration,
                 ),
-            ).toISO(),
+            ).toISOTime(),
         );
         // schedule next record
-        setTimeout(
+        this.timeOutID = setTimeout(
             this.scheduleRecord,
             timeHelpers.secondsToMilliseconds(diffToNextTimeSlot),
         );
     }
 
     record() {
-        console.log('Recording now: \t\t\t', timeHelpers.currentDayTime().toISO());
+        // call record on ffmpeg
+        this.FFMPEG.record();
+    }
+
+    stopSchedule = () => {
+        // clear timer
+        if (this.timeOutID) {
+            clearTimeout(this.timeOutID);
+            this.timeOutID = null;
+        }
+
+        this.FFMPEG.stopRecord();
     }
 }
 
