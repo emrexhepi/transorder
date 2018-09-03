@@ -16,7 +16,10 @@ export const convertDateTimeToSeconds = (dateTime) => {
     const timeInSeconds =
         (dateTime.hour * 60 * 60) +
         (dateTime.minute * 60) +
-        dateTime.second;
+        dateTime.second +
+        (dateTime.millisecond / 1000);
+    
+    console.log('milliseconds', dateTime.millisecond);
 
     // return time in seconds
     return timeInSeconds;

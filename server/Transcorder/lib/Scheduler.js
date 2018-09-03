@@ -75,17 +75,24 @@ class Scheduler {
             preDurationSecs +
             afterDurationSecs;
 
+        // estimated end DateTime
+        const estimatedEndDateTime =
+            timeHelpers.convertSecondsToDateTime(
+                timeHelpers.convertDateTimeToSeconds(DateTime.local()) +
+                recrodDuration,
+            );
+
         // calculate time
         const recProps = {
             skipSecs,
             duration: recrodDuration,
+            estimatedEndDateTime: estimatedEndDateTime.toISOTime(),
         };
 
+        // start recording
         this.record(recProps);
 
-        console.log('record properties: ', recProps);
-
-        // scheudle
+        // scheudle timout
         setTimeout(
             this.scheduleRecord,
             nextInterval * 1000,
