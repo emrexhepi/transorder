@@ -12,9 +12,9 @@
     {
       "name": "scheduler",
       "data": {
-        "preDescrambleSecs": 0,
-        "preDurationRecordSecs": 0,
-        "afterDurationSecs": 0
+        "skipSecs": 5,
+        "preDurationSecs": 5,
+        "afterDurationSecs": 5
       }
     }
   ],

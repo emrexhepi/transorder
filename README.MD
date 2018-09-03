@@ -11,3 +11,18 @@ RaspberryPi based hardware accelerated FFMPEG transcoder and recorder
  - ```npm start // starts the node server in localhost:3000```
  - ```npm run server-dev // Initiates nodeamon for server-side hotreload development server```
  - ```npm run lint // lints the whole js application```
+
+ ### Projcet Memo
+ ##### Schedulre Settings
+ ````
+    {
+      "name": "scheduler",
+      "data": {
+        // cannot be greater then stream duration secs
+        "preDurationSecs": 5,
+        // cannot be greater then preDurationSecs secs
+        "skipSecs": 5,
+        "afterDurationSecs": 5
+      }
+    }
+````

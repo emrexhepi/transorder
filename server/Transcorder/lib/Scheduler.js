@@ -1,6 +1,7 @@
 // import FFMPEG from './FFMPEGMan';
 import * as timeHelpers from './timeHelpers';
 import FFMPEG from './FFMPEGMan';
+import { exists } from 'fs';
 
 class Scheduler {
     constructor(stream, schedulerSettings, ffmpegSettings) {
@@ -13,12 +14,6 @@ class Scheduler {
         console.log(`\nScheduler_${this.stream.name} is initiated!`);
         if (this.stream.schedule.record) {
             this.initSchedule();
-            
-            // test stop schedule and record
-            setTimeout(this.stopSchedule, 60000);
-
-            // restart schedule
-            setTimeout(this.initSchedule, 120000);
         }
     }
 
@@ -30,25 +25,53 @@ class Scheduler {
     }
 
     scheduleRecord = () => {
-        console.log('[schduler.js] - scheduleRecord() ===============================');
+        console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
 
         // if recording is not enabled return null
         if (!this.stream.schedule.record) {
             return;
         }
 
-        // start recording
-        this.record();
-
         // get next time slot
         const diffToNextTimeSlot =
-            timeHelpers.diffToNextTimeSlotInSec(this.stream.schedule.duration);
+            timeHelpers.diffToNextTimeSlotInSec(
+                this.stream.schedule.duration,
+                this.settings.preDurationSecs,
+            );
+        
+        console.log('[schduler.js].scheduleRecord() -> diffToNextTimeSlot: ', diffToNextTimeSlot);
+        
+        // calculate preduration
+        let preduration = this.settings.preDurationSecs < diffToNextTimeSlot ?
+            this.settings.preDurationSecs :
+            this.settings.preDurationSecs - diffToNextTimeSlot;
+        
+        console.log('preduration: ', preduration);
+        
+        setTimeout(this.scheduleRecord, 1000);
+        return;
+
+        // calculate record duration
+        const recrodDuration = 
+            preDuration +
+            this.stream.schedule.duration +
+            this.settings.afterDurationSecs;
+
+        // calculate time
+        const recProps = {
+            skipSecs: this.settings.skipSecs,
+            duration: recrodDuration,
+        };
+
+        // start recording
+        this.record(recProps);
+
 
         console.log(
             '[schduler.js] scheduleRecord() - scheduling :',
             timeHelpers.convertTodaySecondsToDateTime(
-                timeHelpers.nextDayTimeSlotInSec(
-                    this.stream.schedule.duration,
+                timeHelpers.nextTimeSlotInSec(
+                    this.stream.schedule.duration,                    
                 ),
             ).toISOTime(),
         );
@@ -59,9 +82,9 @@ class Scheduler {
         );
     }
 
-    record() {
+    record(recProps) {
         // call record on ffmpeg
-        this.FFMPEG.record();
+        this.FFMPEG.record(recProps);
     }
 
     stopSchedule = () => {

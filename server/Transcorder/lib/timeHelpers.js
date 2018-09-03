@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { exists } from 'fs';
 
 // //////////////////////////////////////////////////////
 // CONSTANTS
@@ -59,7 +60,7 @@ export const currentDayTimeSlotInSec = (durationInSeconds) => {
 };
 
 // return next time-slot
-export const nextDayTimeSlotInSec = (durationInSeconds) => {
+export const nextTimeSlotInSec = (durationInSeconds) => {
     // get current time slot
     const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds);
 
@@ -70,8 +71,17 @@ export const nextDayTimeSlotInSec = (durationInSeconds) => {
 };
 
 // return difference to next time slot
-export const diffToNextTimeSlotInSec = durationInSeconds => 
-nextDayTimeSlotInSec(durationInSeconds) - convertDateTimeToSeconds(DateTime.local());
+export const diffToNextTimeSlotInSec = (durationInSeconds) => {
+    // get next time slot
+    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds);
+
+    // calculate today time in seconds
+    const todayTime = convertDateTimeToSeconds(DateTime.local());
+    // calculate difference to next time slot
+    const diff = nextTimeSlot - todayTime;
+
+    return diff;
+};
 
 // Default return current DateTime
 const dateTimeNow = () => DateTime.local();
