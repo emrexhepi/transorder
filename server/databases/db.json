@@ -12,8 +12,8 @@
     {
       "name": "scheduler",
       "data": {
-        "skipSecs": 5,
-        "preDurationSecs": 5,
+        "skipSecs": 0,
+        "preDurationSecs": 10,
         "afterDurationSecs": 5
       }
     }
@@ -22,10 +22,8 @@
     {
       "name": "RTK",
       "path": "http://rtk.com",
-      "schedule": {
-        "record": true,
-        "duration": 10
-      }
+      "record": true,
+      "recDuration": 120
     }
   ],
   "user": {},

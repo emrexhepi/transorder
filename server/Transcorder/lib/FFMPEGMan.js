@@ -16,12 +16,10 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record(recProps) {
-        console.log(`[FMPEGMan.js] - record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
+        console.log('\x1b[32m%s\x1b[0m', `[FMPEGMan.js] - record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
         console.log('with props: ', recProps);
 
-        // testing
-        this.startTime = DateTime.local();
-
+        // set timeout to finish record job
         setTimeout(
             this.finish,
             timeHelpers.secondsToMilliseconds(recProps.duration),
@@ -30,7 +28,7 @@ class FFMPEG {
 
     finish() {
         // log finish time
-        console.log(`[FMPEGMan.js].finish() - Record finished at ${DateTime.local().toISOTime()}`);
+        console.log('\x1b[36m%s\x1b[0m', `[FMPEGMan.js].finish() - Record finished at ${DateTime.local().toISOTime()}`);
     }
     
     // stop ffmpeg recording instances

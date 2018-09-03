@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon';
-import { exists } from 'fs';
 
 // //////////////////////////////////////////////////////
 // CONSTANTS
@@ -24,7 +23,7 @@ export const convertDateTimeToSeconds = (dateTime) => {
 };
 
 // converts seconds to datetime
-export const convertTodaySecondsToDateTime = (seconds) => {
+export const convertSecondsToDateTime = (seconds) => {
     // today date string
     const dateStr = `${DateTime.local().year}-${DateTime.local().month}-${DateTime.local().day}`;
     
@@ -49,8 +48,8 @@ export const secondsToMilliseconds = seconds => seconds * 1000;
 export const currentDayTime = () => DateTime.local();
 
 // return DateTime time-slot
-export const currentDayTimeSlotInSec = (durationInSeconds) => {
-    const timeInSeconds = convertDateTimeToSeconds(DateTime.local());
+export const currentDayTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
+    const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addedPredurationSecs;
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
         throw new Error('Duration does not add to a full day! pls. add a duration that multiplays a minute in seconds');
@@ -60,20 +59,20 @@ export const currentDayTimeSlotInSec = (durationInSeconds) => {
 };
 
 // return next time-slot
-export const nextTimeSlotInSec = (durationInSeconds) => {
+export const nextTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
     // get current time slot
-    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds);
+    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds, addedPredurationSecs);
 
     // calculate nextTimeSlot
     const nextTimeSlot = currentTimeSlot + durationInSeconds;
-
+    console.log('nextTimeSlot: ', nextTimeSlot);
     return nextTimeSlot;
 };
 
 // return difference to next time slot
-export const diffToNextTimeSlotInSec = (durationInSeconds) => {
+export const diffToNextTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
     // get next time slot
-    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds);
+    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds, addedPredurationSecs);
 
     // calculate today time in seconds
     const todayTime = convertDateTimeToSeconds(DateTime.local());

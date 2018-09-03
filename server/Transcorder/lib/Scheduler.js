@@ -1,18 +1,20 @@
 // import FFMPEG from './FFMPEGMan';
+import { DateTime } from 'luxon';
 import * as timeHelpers from './timeHelpers';
 import FFMPEG from './FFMPEGMan';
-import { exists } from 'fs';
 
 class Scheduler {
     constructor(stream, schedulerSettings, ffmpegSettings) {
         this.stream = stream;
         this.settings = schedulerSettings;
+        this.ffmpegSettings = ffmpegSettings;
         this.FFMPEG = new FFMPEG(stream, ffmpegSettings);
         this.timeOutID = null;
+        this.addedPreDurationSecs = 0;
 
         // initiate
         console.log(`\nScheduler_${this.stream.name} is initiated!`);
-        if (this.stream.schedule.record) {
+        if (this.stream.record) {
             this.initSchedule();
         }
     }
@@ -26,60 +28,71 @@ class Scheduler {
 
     scheduleRecord = () => {
         console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
-
+        console.log(`Started at: ${DateTime.local().toISOTime()}`);
         // if recording is not enabled return null
-        if (!this.stream.schedule.record) {
+        if (!this.stream.record) {
             return;
         }
 
-        // get next time slot
+        // setting checks
+        // check preDurationSecs
+        if (this.settings.preDurationSecs > this.stream.recDuration) {
+            throw Error('Error: Scheduler settings preDurationSecs is greater then stream duration!');
+        }
+
+        // check skipSecs
+        if (this.settings.skipSecs > this.settings.preDurationSecs + this.stream.recDuration) {
+            throw Error('Error: Scheduler settings skipSecs is greater then stream duration + scheduler preDurationSecs!');
+        }
+
+        // check stream record duration should be greater then 5secs
+        if (this.stream.recDuration < 5) {
+            throw Error('Error: Stream record duration should be greater then 5!');
+        }
+
+        // init properties
         const diffToNextTimeSlot =
             timeHelpers.diffToNextTimeSlotInSec(
-                this.stream.schedule.duration,
-                this.settings.preDurationSecs,
+                this.stream.recDuration,
+                this.addedPreDurationSecs,
             );
+
+        let { preDurationSecs, skipSecs, afterDurationSecs } = this.settings;
+
+        console.log('diffToNextTimeSlot: ', diffToNextTimeSlot);
+        let nextInterval = diffToNextTimeSlot - preDurationSecs;
         
-        console.log('[schduler.js].scheduleRecord() -> diffToNextTimeSlot: ', diffToNextTimeSlot);
-        
-        // calculate preduration
-        let preduration = this.settings.preDurationSecs < diffToNextTimeSlot ?
-            this.settings.preDurationSecs :
-            this.settings.preDurationSecs - diffToNextTimeSlot;
-        
-        console.log('preduration: ', preduration);
-        
-        setTimeout(this.scheduleRecord, 1000);
-        return;
+        if (nextInterval < 5) {
+            nextInterval = diffToNextTimeSlot;
+            preDurationSecs = 0;
+            skipSecs = 0;
+        }
+        console.log('Next interval In: ', nextInterval);
 
         // calculate record duration
-        const recrodDuration = 
-            preDuration +
-            this.stream.schedule.duration +
-            this.settings.afterDurationSecs;
+        const recrodDuration =
+            nextInterval +
+            preDurationSecs +
+            afterDurationSecs;
 
         // calculate time
         const recProps = {
-            skipSecs: this.settings.skipSecs,
+            skipSecs,
             duration: recrodDuration,
         };
 
-        // start recording
         this.record(recProps);
 
+        console.log('record properties: ', recProps);
 
-        console.log(
-            '[schduler.js] scheduleRecord() - scheduling :',
-            timeHelpers.convertTodaySecondsToDateTime(
-                timeHelpers.nextTimeSlotInSec(
-                    this.stream.schedule.duration,                    
-                ),
-            ).toISOTime(),
-        );
-        // schedule next record
-        this.timeOutID = setTimeout(
+        // scheudle
+        setTimeout(
             this.scheduleRecord,
-            timeHelpers.secondsToMilliseconds(diffToNextTimeSlot),
+            nextInterval * 1000,
         );
+
+        // set added preduraion
+        this.addedPreDurationSecs = preDurationSecs;
     }
 
     record(recProps) {

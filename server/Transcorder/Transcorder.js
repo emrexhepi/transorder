@@ -37,7 +37,7 @@ class Transcorder {
             });
         });
 
-        // console.log(this.schedulers);
+        console.log('[Transcorder.js].init()-> schedulers no:', this.schedulers.length);
     }
 
     // gets streams from database

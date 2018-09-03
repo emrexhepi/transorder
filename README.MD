@@ -19,10 +19,23 @@ RaspberryPi based hardware accelerated FFMPEG transcoder and recorder
       "name": "scheduler",
       "data": {
         // cannot be greater then stream duration secs
-        "preDurationSecs": 5,
+        "preDurationSecs": 10,
         // cannot be greater then preDurationSecs secs
         "skipSecs": 5,
         "afterDurationSecs": 5
       }
     }
+````
+
+##### Streams
+ ````
+    "streams": [
+      {
+        "name": "RTK",
+        "path": "http://rtk.com",
+        "record": true,
+        // should always be greater then 5
+        "recDuration" : 20
+      }
+    ]
 ````
