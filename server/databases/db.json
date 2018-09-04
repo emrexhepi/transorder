@@ -3,27 +3,53 @@
     {
       "name": "ffmpeg",
       "data": {
-        "size": "700x540",
-        "encoder": "omx",
-        "decoder": "omx",
-        "fileExtension": ".mp4"
+        "global": {
+          "-err_detect": "ignore_err",
+          "-loglevel": "quiet"
+        },
+        "inputPipe": {
+          "-hwaccel": "cuvid",
+          "-c:v": "h264_cuvid",
+          "-i": "streamPath"
+        },
+        "outputPipe": {
+          "-t": "{duration}",
+          "-vsync": "1",
+          "-gpu": "0",
+          "-c:v": "h264_omx",
+          "-r": "25",
+          "-b:v": "300k",
+          "-maxrate": "364k",
+          "-minrate": "364k",
+          "-s": "720x576",
+          "-tune": "zerolatency",
+          "-metadata": "",
+          "-c:a": "libfdk_aac",
+          "-b:a": "64k",
+          "-bufsize": "720k",
+          "-preset": "fast",
+          "-flush_packets": "1",
+          "-blocksize": "900",
+          "-y": ""
+        }
       }
     },
     {
       "name": "scheduler",
       "data": {
-        "skipSecs": 0,
-        "preDurationSecs": 5,
-        "afterDurationSecs": 5
+        "skipSecs": "00:00:06",
+        "preDurationSecs": 0,
+        "afterDurationSecs": 1
       }
     }
   ],
   "streams": [
     {
-      "name": "RTK",
-      "path": "http://rtk.com",
+      "name": "TV21",
+      "path": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPIut/2.ts",
+      "recordBasePath": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 30
+      "recDuration": 1800
     }
   ],
   "user": {},

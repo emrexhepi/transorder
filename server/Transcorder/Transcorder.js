@@ -3,7 +3,7 @@ import Scheduler from './lib/Scheduler';
 
 class Transcorder {
     constructor(db) {
-        // set init
+        // set schedulers array
         this.schedulers = [];
 
         // set db as object property
@@ -34,6 +34,7 @@ class Transcorder {
             this.schedulers.push({
                 name: stream.name,
                 scheduler,
+                stream,
             });
         });
 
@@ -53,6 +54,11 @@ class Transcorder {
         }).value().data;
 
         return settings;
+    }
+
+    // get schedulers
+    getSchedulers() {
+        return this.schedulers;
     }
 }
 

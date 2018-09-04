@@ -51,8 +51,8 @@ export const secondsToMilliseconds = seconds => seconds * 1000;
 export const currentDayTime = () => DateTime.local();
 
 // return DateTime time-slot
-export const currentDayTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
-    const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addedPredurationSecs;
+export const currentDayTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
+    const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addToDateTimeSecs;
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
         throw new Error('Duration does not add to a full day! pls. add a duration that multiplays a minute in seconds');
@@ -62,9 +62,9 @@ export const currentDayTimeSlotInSec = (durationInSeconds, addedPredurationSecs 
 };
 
 // return next time-slot
-export const nextTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
+export const nextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
     // get current time slot
-    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds, addedPredurationSecs);
+    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
 
     // calculate nextTimeSlot
     const nextTimeSlot = currentTimeSlot + durationInSeconds;
@@ -73,9 +73,9 @@ export const nextTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) =
 };
 
 // return difference to next time slot
-export const diffToNextTimeSlotInSec = (durationInSeconds, addedPredurationSecs = 0) => {
+export const diffToNextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
     // get next time slot
-    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds, addedPredurationSecs);
+    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
 
     // calculate today time in seconds
     const todayTime = convertDateTimeToSeconds(DateTime.local());

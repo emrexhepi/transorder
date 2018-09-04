@@ -48,7 +48,8 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "redux": "^4.0.0",
-    "systeminformation": "^3.44.0"
+    "systeminformation": "^3.44.0",
+    "tree-kill": "^1.2.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-async-to-generator": "^7.0.0",
