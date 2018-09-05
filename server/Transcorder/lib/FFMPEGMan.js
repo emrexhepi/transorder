@@ -1,43 +1,94 @@
-// import childProcess from 'child_process';
-// import util from 'util';
-
 // import process libraries
 import kill from 'tree-kill';
 
 import { execFile } from 'child_process';
 
 import { DateTime } from 'luxon';
-import * as timeHelpers from './timeHelpers';
+
+import * as helper from './ffmpegHelpers';
 
 class FFMPEG {
     processes = [];
+    pipeline = [];
 
     constructor(stream, settings) {
         this.stream = stream;
         this.settings = settings;
-        this.processes = [];
 
-        // handle exit signals
-        process.on('SIGTERM', (signal) => {
-            this.stopRecord(signal);
-            process.exit();
-        });
-        process.on('SIGINT', (signal) => {
-            this.stopRecord(signal);
-            process.exit();
-        });
-        process.on('SIGHUP', (signal) => {
-            this.stopRecord(signal);
-            process.exit();
-        });
-        process.on('SIGBREAK', (signal) => {
-            this.stopRecord(signal);
-            process.exit();
+        process.on('exit', () => {
+            this.killProcesses();
         });
     }
 
     updateSettings(settings) {
         this.settings = settings;
+    }
+
+    createFolderAndFileName(recProps) {
+        // get ouput path
+        let { outputDirectory } = this.stream;
+        const dateStr = recProps.startTime.toISODate();
+        const timeStr = DateTime.local().toFormat('HH-mm-ss');
+        // check if outputDirectory has backslash
+        if (outputDirectory[outputDirectory.length - 1] !== '\\') {
+            outputDirectory += '\\';
+        }
+
+        // add stream name to directory
+        outputDirectory += `${this.stream.name}\\${dateStr}\\`;
+
+        // check and create folder
+        helper.mkDirByPathSync(outputDirectory);
+
+        // create filename
+        const filename = `${dateStr}_${timeStr}.mp4`;
+
+        return outputDirectory + filename;
+    }
+
+    createPipeline(recProps) {
+        const { global, inputPipe, outputPipe } = this.settings;
+
+        const outputPath = this.createFolderAndFileName(recProps);
+    
+        const pipeline = [];
+        
+        // add global properties to pipeline
+        Object.keys(global).forEach((key) => {
+            pipeline.push(key, global[key]);
+        });
+        
+        // add inputPipe properties to pipeline
+        Object.keys(inputPipe).forEach((key) => {
+            switch (key) {
+                case '-ss':
+                    pipeline.push(key, recProps.skipSecs);
+                    break;
+                case '-i':
+                    pipeline.push(key, this.stream.input);
+                    break;
+                default:
+                    pipeline.push(key, inputPipe[key]);
+                    break;
+            }
+        });
+        
+        // add outputPipe properties to pipeline
+        Object.keys(outputPipe).forEach((key) => {
+            switch (key) {
+                case '-t':
+                    pipeline.push(key, recProps.duration);
+                    break;
+                case '-y':
+                    pipeline.push(key, outputPath);
+                    break;
+                default:
+                    pipeline.push(key, outputPipe[key]);
+                    break;
+            }
+        });
+    
+        return pipeline;
     }
 
     // Start ffmpeg recording
@@ -49,50 +100,31 @@ class FFMPEG {
         // set duration to no decimal
         recProps.duration = recProps.duration.toFixed(0);
 
-        console.log('with props: ', recProps);
+        // construct pipeline
+        const pipeline = this.createPipeline(recProps);
 
-        // test timestamp
-        const ts = Math.round((new Date()).getTime() / 1000);
+        console.log('ffmpeg', pipeline.join(' '));
 
         // initiate ffmpeg process
         const ffmpegProcess = 
             execFile(
                 'ffmpeg',
-                [
-                    '-i', this.stream.path,
-                    '-ss', recProps.skipSecs, // skip first seconds
-                    '-t', recProps.duration,
-                    '-r', 25,
-                    '-b:v', '300k',
-                    '-s', '720x576',
-                    '-y', `${this.stream.recordBasePath}${this.stream.name}_${ts}.mp4`,
-                ],
+                pipeline,
                 (error, stdout, stderr) => {
                     if (error) {
-                        console.error('stderr', stderr);
-                
+                        console.log('FFMPEG ERROR - errored exit!');
                         // throw error;
                     }
-                
-                    console.log('stdout', stdout);
+
+                    if (stdout) {
+                        console.log('FFMPEG STDOUT', stdout);
+                    }
+                    
+                    if (stderr && !error) {
+                        console.log('FFMPEG STDERR - clean exit');
+                    }
                 },
             );
-        
-        // console.log output data
-        ffmpegProcess.stdout.on(
-            'data',
-            (data) => {
-                console.log(`FFMPEG stdout: ${data.toString()}`);
-            },
-        );
-
-        // console.log input data
-        ffmpegProcess.stdin.on(
-            'data',
-            (data) => {
-                console.log(`FFMPEG stdin: ${data.toString()}`);
-            },
-        );
         
         // console.log error data
         ffmpegProcess.stderr.on(
@@ -103,13 +135,6 @@ class FFMPEG {
         );
 
         this.processes.push(ffmpegProcess);
-
-
-        // set timeout to finish record job
-        // setTimeout(
-        //     this.finish,
-        //     timeHelpers.secondsToMilliseconds(recProps.duration),
-        // );
     }
 
     finish() {
@@ -118,11 +143,24 @@ class FFMPEG {
     }
     
     // stop ffmpeg recording instances
-    stopRecord(signal = 'SIGINT') {
+    stopRecord(signal = 'SIGTERM') {
+        // kill all processes
         this.processes.forEach((ffmpegProcess) => {
             kill(ffmpegProcess.pid, signal);
         });
+
+        this.processes = [];
+
         console.log('[FFMPEGMan.js].stopRecord() - stoping all record instances!');
+    }
+
+    killProcesses() {
+        console.log('Killing FFMPEG child processes!');
+        this.processes.forEach((ffmpegProcess) => {
+            kill(ffmpegProcess.pid, 'SIGINT');
+        });
+
+        this.processes = [];
     }
 }
 

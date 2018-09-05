@@ -57,7 +57,8 @@ class Scheduler {
                 this.addedPreDurationSecs,
             );
 
-        let { preDurationSecs, skipSecs, afterDurationSecs } = this.settings;
+        let { preDurationSecs, skipSecs } = this.settings;
+        const { afterDurationSecs } = this.settings;
 
         console.log('diffToNextTimeSlot: ', diffToNextTimeSlot);
         let nextInterval = diffToNextTimeSlot - preDurationSecs;
@@ -86,7 +87,10 @@ class Scheduler {
         const recProps = {
             skipSecs,
             duration: recrodDuration,
-            estimatedEndDateTime: estimatedEndDateTime.toISOTime(),
+            startTime: timeHelpers.convertSecondsToDateTime(
+                timeHelpers.currentTimeSlotInSec(this.stream.recDuration),
+            ),
+            estimatedEndDateTime,
         };
 
         // start recording

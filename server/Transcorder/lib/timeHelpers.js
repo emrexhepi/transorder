@@ -19,7 +19,7 @@ export const convertDateTimeToSeconds = (dateTime) => {
         dateTime.second +
         (dateTime.millisecond / 1000);
     
-    console.log('milliseconds', dateTime.millisecond);
+    // console.log('milliseconds', dateTime.millisecond);
 
     // return time in seconds
     return timeInSeconds;
@@ -51,7 +51,7 @@ export const secondsToMilliseconds = seconds => seconds * 1000;
 export const currentDayTime = () => DateTime.local();
 
 // return DateTime time-slot
-export const currentDayTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
+export const currentTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
     const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addToDateTimeSecs;
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
@@ -64,11 +64,11 @@ export const currentDayTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0
 // return next time-slot
 export const nextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
     // get current time slot
-    const currentTimeSlot = currentDayTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
+    const currentTimeSlot = currentTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
 
     // calculate nextTimeSlot
     const nextTimeSlot = currentTimeSlot + durationInSeconds;
-    console.log('nextTimeSlot: ', nextTimeSlot);
+    // console.log('nextTimeSlot: ', nextTimeSlot);
     return nextTimeSlot;
 };
 
