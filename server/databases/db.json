@@ -4,11 +4,11 @@
       "name": "ffmpeg",
       "data": {
         "global": {
-          "-loglevel": "error"
+          "-loglevel": "verbose"
         },
         "inputPipe": {
           "-ss": "{skip seconds}",
-          "-i": "{input path}"
+          "-i": "{input}"
         },
         "outputPipe": {
           "-t": "{duration}",
@@ -17,7 +17,7 @@
           "-c:a": "aac",
           "-b:a": "64k",
           "-s": "720x576",
-          "-y": "{output path}"
+          "-y": "{output}"
         }
       }
     },
@@ -26,7 +26,8 @@
       "data": {
         "skipSecs": 0,
         "preDurationSecs": 0,
-        "afterDurationSecs": 0
+        "afterDurationSecs": 0,
+        "restartRecord": true
       }
     }
   ],
@@ -36,7 +37,7 @@
       "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPIut/2.ts",
       "outputDirectory": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 120
+      "recDuration": 60
     }
   ],
   "user": {},

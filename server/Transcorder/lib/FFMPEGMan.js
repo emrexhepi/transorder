@@ -5,13 +5,17 @@ import { execFile } from 'child_process';
 
 import { DateTime } from 'luxon';
 
-import * as helper from './ffmpegHelpers';
+import * as helper from './helpers';
 
 class FFMPEG {
     processes = [];
     pipeline = [];
+    onFinishHooks = [];
+    onErrorHooks = [];
+    outputPath = null;
 
-    constructor(stream, settings) {
+    constructor(processID, stream, settings) {
+        this.processID = processID;
         this.stream = stream;
         this.settings = settings;
 
@@ -50,6 +54,8 @@ class FFMPEG {
         const { global, inputPipe, outputPipe } = this.settings;
 
         const outputPath = this.createFolderAndFileName(recProps);
+
+        this.outputPath = outputPath;
     
         const pipeline = [];
         
@@ -93,16 +99,12 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record(_recProps) {
-        console.log('\x1b[32m%s\x1b[0m', `[FMPEGMan.js] - record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
-        
+        console.log('\x1b[32m%s\x1b[0m', `[FMPEGMan.js].record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
         const recProps = _recProps;
-        
         // set duration to no decimal
         recProps.duration = recProps.duration.toFixed(0);
-
         // construct pipeline
         const pipeline = this.createPipeline(recProps);
-
         console.log('ffmpeg', pipeline.join(' '));
 
         // initiate ffmpeg process
@@ -112,34 +114,49 @@ class FFMPEG {
                 pipeline,
                 (error, stdout, stderr) => {
                     if (error) {
-                        console.log('FFMPEG ERROR - errored exit!');
-                        // throw error;
-                    }
-
-                    if (stdout) {
-                        console.log('FFMPEG STDOUT', stdout);
+                        console.log('FFMPEG STDERR - errored exit');
+                        this.dispatch(this.onErrorHooks, [error, this]);
                     }
                     
                     if (stderr && !error) {
                         console.log('FFMPEG STDERR - clean exit');
+                        this.dispatch(this.onFinishHooks, [this]);
                     }
                 },
             );
-        
-        // console.log error data
-        ffmpegProcess.stderr.on(
-            'data',
-            (data) => {
-            console.log(`FFMPEG stderr: ${data}`);
-            },
-        );
 
         this.processes.push(ffmpegProcess);
     }
 
-    finish() {
-        // log finish time
-        console.log('\x1b[36m%s\x1b[0m', `[FMPEGMan.js].finish() - Record finished at ${DateTime.local().toISOTime()}`);
+    isFunction(functionToCheck) {
+        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+    }
+
+    onError(func) {
+        // check if function
+        if (!this.isFunction) {
+            throw new Error('Please insert function!');
+        }
+
+        // this function should be overrided
+        this.onErrorHooks.push(func);
+    }
+
+    onFinish(func) {
+        // check if function
+        if (!this.isFunction) {
+            throw new Error('Please insert function!');
+        }
+
+        // this function should be overrided
+        this.onFinishHooks.push(func);
+    }
+
+    dispatch(hooks, props) {
+        // dispatch each hook
+        hooks.forEach((hook) => {
+            hook(...props);
+        });
     }
     
     // stop ffmpeg recording instances

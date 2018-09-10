@@ -4,11 +4,12 @@ import * as timeHelpers from './timeHelpers';
 import FFMPEG from './FFMPEGMan';
 
 class Scheduler {
+    instances = [];
+
     constructor(stream, schedulerSettings, ffmpegSettings) {
         this.stream = stream;
         this.settings = schedulerSettings;
-        this.ffmpegSettings = ffmpegSettings;
-        this.FFMPEG = new FFMPEG(stream, ffmpegSettings);
+        this.FFMPEGSettings = ffmpegSettings;
         this.timeOutID = null;
         this.addedPreDurationSecs = 0;
 
@@ -26,7 +27,49 @@ class Scheduler {
         this.scheduleRecord();
     }
 
-    scheduleRecord = () => {
+    // returns ffmpegInstance or undefined
+    findInstance(id = null) {
+        if (!id) throw Error('id not set');
+
+        if (!this.instances.length === 0) return undefined;
+
+        const instance = this.instances.find(
+            inst => inst.name === id,
+        );
+
+        return instance;
+    }
+    
+    createInstance() {
+        // generate intsance name
+        const id = `_${Math.random().toString(36).substr(2, 10)}`;
+        // generate new instance
+        const ffmpeg = new FFMPEG(id, this.stream, this.FFMPEGSettings);
+        // create recInstance
+        const recInstance = {
+            id,
+            ffmpeg,
+        };
+
+        // push it to instances and return it
+        this.instances.push(recInstance);
+
+        return recInstance;
+    }
+
+    getInstance(id = null) {
+        // if id find on instances
+        if (id) {
+            return this.findInstance(id);
+        }
+        // if id is null create new one
+        return this.createInstance();
+    }
+
+    scheduleRecord = (instanceId = null) => {
+        // get instance
+        const recInstance = this.getInstance(instanceId);
+
         console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
         console.log(`Started at: ${DateTime.local().toISOTime()}`);
         // if recording is not enabled return null
@@ -94,7 +137,7 @@ class Scheduler {
         };
 
         // start recording
-        this.record(recProps);
+        this.record(recInstance, recProps);
 
         // scheudle timout
         setTimeout(
@@ -106,9 +149,21 @@ class Scheduler {
         this.addedPreDurationSecs = preDurationSecs;
     }
 
-    record(recProps) {
+    record(recInstance, recProps) {
+        const { ffmpeg } = recInstance;
+
+        // set error and sucess hooks
+        ffmpeg.onFinish((ffmpegMan) => {
+            console.log(`[Schedule.js].record -> ${ffmpegMan.processID} finished recording`);
+        });
+
+        ffmpeg.onError((error, ffmpegMan) => {
+            console.log(`[Schedule.js].record -> ${ffmpegMan.processID} ended with ERROR!`);
+            console.log(error.message);
+        });
+
         // call record on ffmpeg
-        this.FFMPEG.record(recProps);
+        ffmpeg.record(recProps);
     }
 
     stopSchedule = () => {
@@ -118,7 +173,8 @@ class Scheduler {
             this.timeOutID = null;
         }
 
-        this.FFMPEG.stopRecord();
+        // end ffmpeg
+        throw Error('[Shcduler.js]->stopSchedule() UNIMPLEMENTED!');
     }
 }
 
