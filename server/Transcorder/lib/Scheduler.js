@@ -4,7 +4,7 @@ import * as timeHelpers from './timeHelpers';
 import FFMPEG from './FFMPEGMan';
 
 class Scheduler {
-    instances = [];
+    instances = {};
 
     constructor(stream, schedulerSettings, ffmpegSettings) {
         this.stream = stream;
@@ -27,22 +27,9 @@ class Scheduler {
         this.scheduleRecord();
     }
 
-    // returns ffmpegInstance or undefined
-    findInstance(id = null) {
-        if (!id) throw Error('id not set');
-
-        if (!this.instances.length === 0) return undefined;
-
-        const instance = this.instances.find(
-            inst => inst.name === id,
-        );
-
-        return instance;
-    }
-    
     createInstance() {
-        // generate intsance name
-        const id = `_${Math.random().toString(36).substr(2, 10)}`;
+        // generate random intsance id
+        const id = `_${Math.random().toString(36).substr(2, 12)}`;
         // generate new instance
         const ffmpeg = new FFMPEG(id, this.stream, this.FFMPEGSettings);
         // create recInstance
@@ -51,10 +38,21 @@ class Scheduler {
             ffmpeg,
         };
 
-        // push it to instances and return it
-        this.instances.push(recInstance);
-
         return recInstance;
+    }
+
+    // returns ffmpegInstance or undefined
+    findInstance(id = null) {
+        if (!id) throw Error('id not set');
+
+        if (!this.instances.length === 0) return undefined;
+
+        // if key in object exists return value
+        if (Object.prototype.hasOwnProperty.call(this.instances, id)) {
+            return this.instances[id];
+        }
+
+        return undefined;
     }
 
     getInstance(id = null) {
@@ -66,7 +64,15 @@ class Scheduler {
         return this.createInstance();
     }
 
-    scheduleRecord = (instanceId = null) => {
+    addInstance(recInstance) {
+        this.instances[recInstance.id] = recInstance;
+    }
+
+    removeInstance(id) {
+        delete this.instances[id];
+    }
+
+    scheduleRecord = (instanceId = null, reSchedule = true) => {
         // get instance
         const recInstance = this.getInstance(instanceId);
 
@@ -136,34 +142,61 @@ class Scheduler {
             estimatedEndDateTime,
         };
 
-        // start recording
-        this.record(recInstance, recProps);
+        // do not start recording if 
+        if (recrodDuration > this.settings.dontRecordIfRemainingDuration) {
+            // start recording
+            this.record(recInstance, recProps);
+        }
 
-        // scheudle timout
-        setTimeout(
-            this.scheduleRecord,
-            nextInterval * 1000,
-        );
+        if (reSchedule) {
+            console.log('RESCHEDULING!');
+            // scheudle timout
+            setTimeout(
+                this.scheduleRecord,
+                nextInterval * 1000,
+            );
+        }
 
         // set added preduraion
         this.addedPreDurationSecs = preDurationSecs;
     }
 
+
     record(recInstance, recProps) {
         const { ffmpeg } = recInstance;
 
         // set error and sucess hooks
-        ffmpeg.onFinish((ffmpegMan) => {
-            console.log(`[Schedule.js].record -> ${ffmpegMan.processID} finished recording`);
+        ffmpeg.onSuccess((ffmpegMan) => {
+           this.onSuccess(ffmpegMan.ID);
         });
 
-        ffmpeg.onError((error, ffmpegMan) => {
-            console.log(`[Schedule.js].record -> ${ffmpegMan.processID} ended with ERROR!`);
-            console.log(error.message);
+        ffmpeg.onError((ffmpegMan, error) => {
+            this.onError(ffmpegMan.ID, error);
         });
 
         // call record on ffmpeg
         ffmpeg.record(recProps);
+
+        // push it to instances
+        this.addInstance(recInstance);
+    }
+
+    // on record success
+    onSuccess = (instanceID) => {
+        console.log(`[Schedule.js].record -> ${instanceID} finished recording`);
+    }
+
+    // on record error
+    onError = (instanceID) => {
+        console.log(`[Schedule.js].record -> ${instanceID} recording ERROR`);
+
+        // reset hooks of instance
+        const instance = this.getInstance(instanceID);
+        instance.ffmpeg.resetHooks();
+
+        setTimeout(() => {
+            this.scheduleRecord(instanceID, false);
+        }, this.settings.reScheduleTimeout * 1000);
     }
 
     stopSchedule = () => {

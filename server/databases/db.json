@@ -27,7 +27,9 @@
         "skipSecs": 0,
         "preDurationSecs": 0,
         "afterDurationSecs": 0,
-        "restartRecord": true
+        "restartRecord": true,
+        "dontRecordIfRemainingDuration": 5,
+        "reScheduleTimeout": 5
       }
     }
   ],

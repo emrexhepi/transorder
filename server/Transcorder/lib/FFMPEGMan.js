@@ -10,12 +10,12 @@ import * as helper from './helpers';
 class FFMPEG {
     processes = [];
     pipeline = [];
-    onFinishHooks = [];
+    onSuccessHooks = [];
     onErrorHooks = [];
     outputPath = null;
 
-    constructor(processID, stream, settings) {
-        this.processID = processID;
+    constructor(ID, stream, settings) {
+        this.ID = ID;
         this.stream = stream;
         this.settings = settings;
 
@@ -115,12 +115,12 @@ class FFMPEG {
                 (error, stdout, stderr) => {
                     if (error) {
                         console.log('FFMPEG STDERR - errored exit');
-                        this.dispatch(this.onErrorHooks, [error, this]);
+                        this.dispatch(this.onErrorHooks, [this, error]);
                     }
                     
                     if (stderr && !error) {
                         console.log('FFMPEG STDERR - clean exit');
-                        this.dispatch(this.onFinishHooks, [this]);
+                        this.dispatch(this.onSuccessHooks, [this]);
                     }
                 },
             );
@@ -138,18 +138,21 @@ class FFMPEG {
             throw new Error('Please insert function!');
         }
 
+        // kill instances
+        this.killProcesses();
+
         // this function should be overrided
         this.onErrorHooks.push(func);
     }
 
-    onFinish(func) {
+    onSuccess(func) {
         // check if function
         if (!this.isFunction) {
-            throw new Error('Please insert function!');
+            throw new Error('Please add function as a parametter!');
         }
 
         // this function should be overrided
-        this.onFinishHooks.push(func);
+        this.onSuccessHooks.push(func);
     }
 
     dispatch(hooks, props) {
@@ -157,6 +160,11 @@ class FFMPEG {
         hooks.forEach((hook) => {
             hook(...props);
         });
+    }
+
+    resetHooks() {
+        this.onSuccessHooks = [];
+        this.onErrorHooks = [];
     }
     
     // stop ffmpeg recording instances
