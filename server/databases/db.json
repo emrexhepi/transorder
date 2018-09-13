@@ -40,7 +40,7 @@
       "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPIut/2.ts",
       "outputDirectory": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 120
+      "recDuration": 10
     }
   ],
   "user": {},

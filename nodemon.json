@@ -6,5 +6,5 @@
         "./server/bin/",
         "./server/databases/"
     ],
-    "exec": "npm run build:server-dev && npm start"
+    "exec": "npm run build:server-dev && npm run start-inspect"
   }

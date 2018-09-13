@@ -15,14 +15,14 @@ class Scheduler {
         this.addedPreDurationSecs = 0;
 
         // initiate
-        console.log(`\nScheduler_${this.stream.name} is initiated!`);
+        // console.log(`\nScheduler_${this.stream.name} is initiated!`);
         if (this.stream.record) {
             this.initSchedule();
         }
     }
 
     initSchedule = () => {
-        console.log(`Scheduler_${this.stream.name} is initiating!`);
+        // console.log(`Scheduler_${this.stream.name} is initiating!`);
         
         // schedule next record
         this.scheduleRecord();
@@ -78,8 +78,8 @@ class Scheduler {
         // get instance
         const recInstance = this.getInstance(instanceId);
 
-        console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
-        console.log(`Started at: ${DateTime.local().toISOTime()}`);
+        // console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
+        // console.log(`Started at: ${DateTime.local().toISOTime()}`);
         // if recording is not enabled return null
         if (!this.stream.record) {
             return;
@@ -111,7 +111,7 @@ class Scheduler {
         let { preDurationSecs, skipSecs } = this.settings;
         const { afterDurationSecs } = this.settings;
 
-        console.log('diffToNextTimeSlot: ', diffToNextTimeSlot);
+        // console.log('diffToNextTimeSlot: ', diffToNextTimeSlot);
         let nextInterval = diffToNextTimeSlot - preDurationSecs;
         
         if (nextInterval < 5) {
@@ -119,7 +119,7 @@ class Scheduler {
             preDurationSecs = 0;
             skipSecs = 0;
         }
-        console.log('Next interval In: ', nextInterval);
+        // console.log('Next interval In: ', nextInterval);
 
         // calculate record duration
         const recrodDuration =
@@ -154,7 +154,7 @@ class Scheduler {
         }
 
         if (reSchedule) {
-            console.log('[schduler.js].scheduleRecord() -> Next record SCHEDULED!');
+            // console.log('[schduler.js].scheduleRecord() -> Next record SCHEDULED!');
             // scheudle timout
             setTimeout(
                 this.scheduleRecord,
@@ -164,6 +164,10 @@ class Scheduler {
 
         // set added preduraion
         this.addedPreDurationSecs = preDurationSecs;
+
+        // heap used after every schedule
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        console.log('\x1b[32m%s\x1b[0m', 'The script uses approximately', (Math.round(used * 100) / 100), 'MB');
     }
 
 
@@ -188,13 +192,13 @@ class Scheduler {
 
     // on record success
     onSuccess = (instanceID) => {
-        console.log(`[Schedule.js].record -> ${instanceID} finished recording`);
+        // console.log(`[Schedule.js].record -> ${instanceID} finished recording`);
         // get instance by id
         const instance = this.getInstance(instanceID);
 
         // if there are more then one file per timeslot
         // write a json
-        if (instance.files.length > 0) {
+        if (instance && instance.files.length > 0) {
             instance.files.push({
                 outputPath: instance.ffmpeg.outputPath,
                 outputDirectory: instance.ffmpeg.outputDirectory,
@@ -210,18 +214,20 @@ class Scheduler {
                 if (err) {
                     throw err;
                 }
-                console.log(err);
+                // console.log(err);
             });
         }
 
-        instance.ffmpeg.stopRecord(true);
+        if (instance && instance.ffmpeg) {
+            instance.ffmpeg.stopRecord(true);
+        }
 
         this.removeInstance(instanceID);
     }
 
     // on record error
     onError = (instanceID) => {
-        console.log(`[Schedule.js].record -> ${instanceID} recording ERROR`);
+        // console.log(`[Schedule.js].record -> ${instanceID} recording ERROR`);
 
         // reset hooks of instance
         const instance = this.getInstance(instanceID);
