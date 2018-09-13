@@ -12,7 +12,11 @@ class FFMPEG {
     pipeline = [];
     onSuccessHooks = [];
     onErrorHooks = [];
+    outputDirectory = null;
+    outputFileName = null;
     outputPath = null;
+    fileExtension = '.mp4';
+    finished = false;
 
     constructor(ID, stream, settings) {
         this.ID = ID;
@@ -38,16 +42,23 @@ class FFMPEG {
             outputDirectory += '\\';
         }
 
+        
         // add stream name to directory
         outputDirectory += `${this.stream.name}\\${dateStr}\\`;
-
+        
         // check and create folder
         helper.mkDirByPathSync(outputDirectory);
 
-        // create filename
-        const filename = `${dateStr}_${timeStr}.mp4`;
+        this.outputDirectory = outputDirectory;
 
-        return outputDirectory + filename;
+        // create filename
+        const filename = `${dateStr}_${timeStr}`;
+
+        this.outputFileName = filename;
+
+        this.outputPath = outputDirectory + filename + this.fileExtension;
+
+        return this.outputPath;
     }
 
     createPipeline(recProps) {
@@ -113,12 +124,16 @@ class FFMPEG {
                 'ffmpeg',
                 pipeline,
                 (error, stdout, stderr) => {
-                    if (error) {
+                    if (this.finished) {
+                        return;
+                    }
+
+                    if (error || stderr) {
                         console.log('FFMPEG STDERR - errored exit');
                         this.dispatch(this.onErrorHooks, [this, error]);
                     }
                     
-                    if (stderr && !error) {
+                    if (!stderr && !error) {
                         console.log('FFMPEG STDERR - clean exit');
                         this.dispatch(this.onSuccessHooks, [this]);
                     }
@@ -168,21 +183,23 @@ class FFMPEG {
     }
     
     // stop ffmpeg recording instances
-    stopRecord(signal = 'SIGTERM') {
+    stopRecord(finished = false) {
+        if (finished) {
+            this.finished = true;
+        }
+
         // kill all processes
-        this.processes.forEach((ffmpegProcess) => {
-            kill(ffmpegProcess.pid, signal);
-        });
+        this.killProcesses();
 
         this.processes = [];
 
         console.log('[FFMPEGMan.js].stopRecord() - stoping all record instances!');
     }
 
-    killProcesses() {
+    killProcesses(signal = 'SIGINT') {
         console.log('Killing FFMPEG child processes!');
         this.processes.forEach((ffmpegProcess) => {
-            kill(ffmpegProcess.pid, 'SIGINT');
+            kill(ffmpegProcess.pid, signal);
         });
 
         this.processes = [];

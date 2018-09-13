@@ -1,4 +1,5 @@
 // import FFMPEG from './FFMPEGMan';
+import fs from 'fs';
 import { DateTime } from 'luxon';
 import * as timeHelpers from './timeHelpers';
 import FFMPEG from './FFMPEGMan';
@@ -36,6 +37,7 @@ class Scheduler {
         const recInstance = {
             id,
             ffmpeg,
+            files: [],
         };
 
         return recInstance;
@@ -146,10 +148,13 @@ class Scheduler {
         if (recrodDuration > this.settings.dontRecordIfRemainingDuration) {
             // start recording
             this.record(recInstance, recProps);
+        } else {
+            // end this ass a successful record
+            this.onSuccess(recInstance.id);
         }
 
         if (reSchedule) {
-            console.log('RESCHEDULING!');
+            console.log('[schduler.js].scheduleRecord() -> Next record SCHEDULED!');
             // scheudle timout
             setTimeout(
                 this.scheduleRecord,
@@ -184,6 +189,34 @@ class Scheduler {
     // on record success
     onSuccess = (instanceID) => {
         console.log(`[Schedule.js].record -> ${instanceID} finished recording`);
+        // get instance by id
+        const instance = this.getInstance(instanceID);
+
+        // if there are more then one file per timeslot
+        // write a json
+        if (instance.files.length > 0) {
+            instance.files.push({
+                outputPath: instance.ffmpeg.outputPath,
+                outputDirectory: instance.ffmpeg.outputDirectory,
+                outputFileName: instance.ffmpeg.outputFileName,
+            });
+
+            const content = JSON.stringify(instance.files);
+
+            const jsonFileName = `${instance.files[0].outputDirectory}\\${instance.files[0].outputFileName}.json`;
+
+            // write information to json
+            fs.writeFile(jsonFileName, content, 'utf8', (err) => {
+                if (err) {
+                    throw err;
+                }
+                console.log(err);
+            });
+        }
+
+        instance.ffmpeg.stopRecord(true);
+
+        this.removeInstance(instanceID);
     }
 
     // on record error
@@ -193,6 +226,12 @@ class Scheduler {
         // reset hooks of instance
         const instance = this.getInstance(instanceID);
         instance.ffmpeg.resetHooks();
+
+        instance.files.push({
+            outputPath: instance.ffmpeg.outputPath,
+            outputDirectory: instance.ffmpeg.outputDirectory,
+            outputFileName: instance.ffmpeg.outputFileName,
+        });
 
         setTimeout(() => {
             this.scheduleRecord(instanceID, false);
