@@ -13,32 +13,12 @@ RaspberryPi based hardware accelerated FFMPEG transcoder and recorder
  - ```npm run lint // lints the whole js application```
 
 ### Debugging
-To debug nodejs memory leaks or anything else run ```npm run server-dev``` on your command line. This command also runs the node with --inspect flag. To inspect this process open Google Chrome, enter "chrome://inspect/#devices" and press inspect to the approperiate nodejs process it will attach a debugger.
+```npm run server-dev``` Starts NodeJS with nodeamon and with "--inspect" flag. "--inspect" flag opens websockets on port 9229 with inspect capabilities and source-maps already in place.
 
- ### Projcet Memo
- ##### Scheduler Settings
- ````
-    {
-      "name": "scheduler",
-      "data": {
-        // cannot be greater then stream duration secs
-        "preDurationSecs": 10,
-        // cannot be greater then preDurationSecs secs
-        "skipSecs": 5,
-        "afterDurationSecs": 5
-      }
-    }
-````
+##### Google Chrom
+To start debugging with Chrome (better for memory leak debugs - in my opinion), Open Chrome to "chrome://inspect/#devices" after you run ```npm run server-dev``` and select inspect on the approperiate NodeJS process, there you'll find chrome debugging tools attached to the NodeJS process.
 
-##### Streams
- ````
-    "streams": [
-      {
-        "name": "RTK",
-        "path": "http://rtk.com",
-        "record": true,
-        // should always be greater then 5
-        "recDuration" : 20
-      }
-    ]
-````
+##### Visual Studio Code
+If you cloned this repository there will be a .vscode folder with a launch.json in place. Just run the "Attach to remote" with F5 or from the debugging panel after you run ```npm run server-dev``` this will attach a remote debugger to the node process.
+
+Happy debugging!
