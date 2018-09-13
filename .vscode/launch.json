@@ -7,14 +7,11 @@
         {
             "type": "node",
             "request": "attach",
-            "name": "Attach by Process ID",
-            "processId": "${command:PickProcess}"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}\\server\\bin\\server.js"
+            "name": "Attach to Remote",
+            "address": "127.0.0.1",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "${workspaceFolder}\\server\\bin\\server.js"
         }
     ]
 }
