@@ -12,8 +12,11 @@ RaspberryPi based hardware accelerated FFMPEG transcoder and recorder
  - ```npm run server-dev // Initiates nodeamon for server-side hotreload development server```
  - ```npm run lint // lints the whole js application```
 
+### Debugging
+To debug nodejs memory leaks or anything else run ```npm run server-dev``` on your command line. This command also runs the node with --inspect flag. To inspect this process open Google Chrome, enter "chrome://inspect/#devices" and press inspect to the approperiate nodejs process it will attach a debugger.
+
  ### Projcet Memo
- ##### Schedulre Settings
+ ##### Scheduler Settings
  ````
     {
       "name": "scheduler",

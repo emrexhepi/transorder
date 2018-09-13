@@ -22,10 +22,10 @@ class FFMPEG {
         this.ID = ID;
         this.stream = stream;
         this.settings = settings;
+    }
 
-        // process.on('exit', () => {
-        //     this.killProcesses();
-        // });
+    onExitHandler() {
+        this.killProcesses();
     }
 
     updateSettings(settings) {
@@ -110,7 +110,8 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record(_recProps) {
-        // console.log(`[FMPEGMan.js].record() ${this.stream.name} at ${DateTime.local().toISOTime()}`);
+        // console.log(`[FMPEGMan.js].record() ${this.stream.name}\
+        //  at ${DateTime.local().toISOTime()}`);
         const recProps = _recProps;
         // set duration to no decimal
         recProps.duration = recProps.duration.toFixed(0);
@@ -145,6 +146,8 @@ class FFMPEG {
         });
 
         this.processes.push(ffmpegProcess);
+
+        // process.on('exit', this.onExitHandler);
     }
 
     isFunction(functionToCheck) {
@@ -162,6 +165,9 @@ class FFMPEG {
 
         // this function should be overrided
         this.onErrorHooks.push(func);
+
+        // remove hook
+        this.removeOnExitListener();
     }
 
     onSuccess(func) {
@@ -172,6 +178,9 @@ class FFMPEG {
 
         // this function should be overrided
         this.onSuccessHooks.push(func);
+
+        // remove exit hook
+        // this.removeOnExitListener();
     }
 
     dispatch(hooks, props) {
@@ -198,6 +207,7 @@ class FFMPEG {
         this.processes = [];
 
         // console.log('[FFMPEGMan.js].stopRecord() - stoping all record instances!');
+        // this.removeOnExitListener();
     }
 
     killProcesses(signal = 'SIGINT') {
@@ -207,6 +217,12 @@ class FFMPEG {
         });
 
         this.processes = [];
+    }
+
+    removeOnExitListener() {
+        if (this.exitProccessHook) {
+            process.removeListener(this.onExitHandler);
+        }
     }
 }
 
