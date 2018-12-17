@@ -1,31 +1,48 @@
-// import packages
-import Scheduler from './lib/Scheduler';
+
+// import libs
+// import Scheduler from './lib/Scheduler';
+
+// redux imports
+import { loadStreamsToStore, loadFfmpegSettingsToStore, loadSchedulerSettingsToStore } from './redux/actions/transcoder';
+import store from './redux/store';
 
 class Transcorder {
-    constructor(db) {
-        // set schedulers array
-        this.schedulers = [];
+    unsubscribeStore = () => {}
+    schedulers = [];
+    db = null;
+    store = null;
 
+    constructor(db) {
         // set db as object property
         this.db = db;
+
+        // set store as object property
+        this.store = store;
 
         // Start Transcoding
         this.init();
     }
-
+    
     init() {
         console.log('Transcoding is initiated!\n');
 
-        // INITIATE Schedulers
+        // subscribe to redux store to log actions
+        this.unsubscribeStore = this.store.subscribe(() => {
+            console.log(store.getState());
+        });
+        
+        // load streams in to redux store
+        loadStreamsToStore(store, this.db);
 
-        // get streams
-        const streams = this.getStreams();
+        // load ffmpeg settings in to redux store
+        loadFfmpegSettingsToStore(store, this.db);
 
-        // get ffmpegSettings
-        const ffmpegSettings = this.getSettingsFromDB('ffmpeg');
+        // load scheduler settings in to redux store
+        loadSchedulerSettingsToStore(store, this.db);
 
-        // get scheduler settings
-        const schedulerSettings = this.getSettingsFromDB('scheduler');
+        // asign schedulers to streams
+
+        /*
 
         // Create scheulders from streams
         streams.forEach((stream) => {
@@ -39,27 +56,10 @@ class Transcorder {
         });
 
         console.log('[Transcorder.js].init()-> schedulers no:', this.schedulers.length);
-    }
-
-    // gets streams from database
-    getStreams() {
-        const streams = this.db.get('streams').value();
-        return streams;
-    }
-
-    // returns ffmpeg settings from database
-    getSettingsFromDB(settingName) {
-        const settings = this.db.get('settings').find({
-            name: settingName,
-        }).value().data;
-
-        return settings;
-    }
-
-    // get schedulers
-    getSchedulers() {
-        return this.schedulers;
+        
+        */
     }
 }
 
 export default Transcorder;
+

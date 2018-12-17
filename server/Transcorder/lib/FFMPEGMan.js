@@ -69,23 +69,36 @@ class FFMPEG {
         this.outputPath = outputPath;
     
         const pipeline = [];
+
+        const pushToPipeLine = (key, value) => {
+            if (key === undefined || value === undefined) {
+                return;
+            }
+
+            if (value === '' || value === null) {
+                pipeline.push(key);
+                return;
+            }
+
+            pipeline.push(key, value);
+        };
         
         // add global properties to pipeline
         Object.keys(global).forEach((key) => {
-            pipeline.push(key, global[key]);
+            pushToPipeLine(key, global[key]);
         });
         
         // add inputPipe properties to pipeline
         Object.keys(inputPipe).forEach((key) => {
             switch (key) {
                 case '-ss':
-                    pipeline.push(key, recProps.skipSecs);
+                    pushToPipeLine(key, recProps.skipSecs);
                     break;
                 case '-i':
-                    pipeline.push(key, this.stream.input);
+                    pushToPipeLine(key, this.stream.input);
                     break;
                 default:
-                    pipeline.push(key, inputPipe[key]);
+                    pushToPipeLine(key, inputPipe[key]);
                     break;
             }
         });
@@ -94,13 +107,13 @@ class FFMPEG {
         Object.keys(outputPipe).forEach((key) => {
             switch (key) {
                 case '-t':
-                    pipeline.push(key, recProps.duration);
+                    pushToPipeLine(key, recProps.duration);
                     break;
                 case '-y':
-                    pipeline.push(key, outputPath);
+                    pushToPipeLine(key, outputPath);
                     break;
                 default:
-                    pipeline.push(key, outputPipe[key]);
+                    pushToPipeLine(key, outputPipe[key]);
                     break;
             }
         });
@@ -110,14 +123,15 @@ class FFMPEG {
 
     // Start ffmpeg recording
     record(_recProps) {
-        // console.log(`[FMPEGMan.js].record() ${this.stream.name}\
-        //  at ${DateTime.local().toISOTime()}`);
+        console.log(`[FMPEGMan.js].record() ${this.stream.name}\
+            at ${DateTime.local().toISOTime()}`);
+
         const recProps = _recProps;
         // set duration to no decimal
         recProps.duration = recProps.duration.toFixed(0);
         // construct pipeline
         const pipeline = this.createPipeline(recProps);
-        // console.log('ffmpeg', pipeline.join(' '));
+        console.log('ffmpeg', pipeline.join(' '));
 
         // initiate ffmpeg process
         const ffmpegProcess = 
@@ -138,6 +152,8 @@ class FFMPEG {
                         // console.log('FFMPEG STDERR - clean exit');
                         this.dispatch(this.onSuccessHooks, [this]);
                     }
+
+                    console.log(stderr);
                 },
             );
         
@@ -160,14 +176,8 @@ class FFMPEG {
             throw new Error('Please insert function!');
         }
 
-        // kill instances
-        this.killProcesses();
-
         // this function should be overrided
         this.onErrorHooks.push(func);
-
-        // remove hook
-        this.removeOnExitListener();
     }
 
     onSuccess(func) {
@@ -178,9 +188,6 @@ class FFMPEG {
 
         // this function should be overrided
         this.onSuccessHooks.push(func);
-
-        // remove exit hook
-        // this.removeOnExitListener();
     }
 
     dispatch(hooks, props) {
@@ -205,9 +212,6 @@ class FFMPEG {
         this.killProcesses();
 
         this.processes = [];
-
-        // console.log('[FFMPEGMan.js].stopRecord() - stoping all record instances!');
-        // this.removeOnExitListener();
     }
 
     killProcesses(signal = 'SIGINT') {
