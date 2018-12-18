@@ -1,24 +1,34 @@
-// import FFMPEG from './FFMPEGMan';
+// import libraries
 import fs from 'fs';
 import { DateTime } from 'luxon';
 import * as timeHelpers from './timeHelpers';
-import FFMPEG from './FFMPEGMan';
+import { makeRandomID } from './helpers';
+
+// import Recorder ( ffmpeg wrapper)
+import Recorder from './Recorder';
 
 class Scheduler {
     instances = {};
+    store = null;
+    streamId = '';
+    stream = {};
 
-    constructor(stream, schedulerSettings, ffmpegSettings) {
-        this.stream = stream;
-        this.settings = schedulerSettings;
-        this.FFMPEGSettings = ffmpegSettings;
-        this.timeOutID = null;
-        this.addedPreDurationSecs = 0;
+    constructor(store, streamId) {
+        // set parametters to obj attributes
+        this.store = store;
+        this.streamId = streamId;
 
-        // initiate
-        // console.log(`\nScheduler_${this.stream.name} is initiated!`);
-        if (this.stream.record) {
-            this.initSchedule();
-        }
+        // this.stream = stream;
+        // this.settings = schedulerSettings;
+        // this.FFMPEGSettings = ffmpegSettings;
+        // this.timeOutID = null;
+        // this.addedPreDurationSecs = 0;
+
+        // // initiate
+        // // console.log(`\nScheduler_${this.stream.name} is initiated!`);
+        // if (this.stream.record) {
+        //     this.initSchedule();
+        // }
     }
 
     initSchedule = () => {
@@ -26,52 +36,6 @@ class Scheduler {
         
         // schedule next record
         this.scheduleRecord();
-    }
-
-    createInstance() {
-        // generate random intsance id
-        const id = `_${Math.random().toString(36).substr(2, 12)}`;
-        // generate new instance
-        const ffmpeg = new FFMPEG(id, this.stream, this.FFMPEGSettings);
-        // create recInstance
-        const recInstance = {
-            id,
-            ffmpeg,
-            files: [],
-        };
-
-        return recInstance;
-    }
-
-    // returns ffmpegInstance or undefined
-    findInstance(id = null) {
-        if (!id) throw Error('id not set');
-
-        if (!this.instances.length === 0) return undefined;
-
-        // if key in object exists return value
-        if (Object.prototype.hasOwnProperty.call(this.instances, id)) {
-            return this.instances[id];
-        }
-
-        return undefined;
-    }
-
-    getInstance(id = null) {
-        // if id find on instances
-        if (id) {
-            return this.findInstance(id);
-        }
-        // if id is null create new one
-        return this.createInstance();
-    }
-
-    addInstance(recInstance) {
-        this.instances[recInstance.id] = recInstance;
-    }
-
-    removeInstance(id) {
-        delete this.instances[id];
     }
 
     scheduleRecord = (instanceId = null, reSchedule = true) => {
@@ -168,6 +132,52 @@ class Scheduler {
         // heap used after every schedule
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         console.log('\x1b[32m%s\x1b[0m', 'The script uses approximately', (Math.round(used * 100) / 100), 'MB');
+    }
+
+    createInstance() {
+        // generate random intsance id
+        const id = makeRandomID();
+        // generate new instance
+        const ffmpeg = new Recorder(id, this.stream, this.FFMPEGSettings);
+        // create recInstance
+        const recInstance = {
+            id,
+            ffmpeg,
+            files: [],
+        };
+
+        return recInstance;
+    }
+
+    // returns ffmpegInstance or undefined
+    findInstance(id = null) {
+        if (!id) throw Error('id not set');
+
+        if (!this.instances.length === 0) return undefined;
+
+        // if key in object exists return value
+        if (Object.prototype.hasOwnProperty.call(this.instances, id)) {
+            return this.instances[id];
+        }
+
+        return undefined;
+    }
+
+    getInstance(id = null) {
+        // if id find on instances
+        if (id) {
+            return this.findInstance(id);
+        }
+        // if id is null create new one
+        return this.createInstance();
+    }
+
+    addInstance(recInstance) {
+        this.instances[recInstance.id] = recInstance;
+    }
+
+    removeInstance(id) {
+        delete this.instances[id];
     }
 
 

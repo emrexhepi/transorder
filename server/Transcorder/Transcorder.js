@@ -1,14 +1,22 @@
 
 // import libs
-// import Scheduler from './lib/Scheduler';
+import Scheduler from './lib/Scheduler';
 
 // redux imports
-import { loadStreamsToStore, loadFfmpegSettingsToStore, loadSchedulerSettingsToStore } from './redux/actions/transcoder';
+import { 
+    loadStreamsToStore, 
+    loadFfmpegSettingsToStore, 
+    loadSchedulerSettingsToStore,
+} from './redux/actions/transcoderActions';
+
+// redux store selectors
+import { getStreamsFromStore } from './redux/selectors/transcoderSelectors';
+
 import store from './redux/store';
 
 class Transcorder {
     unsubscribeStore = () => {}
-    schedulers = [];
+    schedulers = {};
     db = null;
     store = null;
 
@@ -30,6 +38,8 @@ class Transcorder {
         this.unsubscribeStore = this.store.subscribe(() => {
             console.log(store.getState());
         });
+
+        this.unsubscribeStore();
         
         // load streams in to redux store
         loadStreamsToStore(store, this.db);
@@ -40,24 +50,26 @@ class Transcorder {
         // load scheduler settings in to redux store
         loadSchedulerSettingsToStore(store, this.db);
 
-        // asign schedulers to streams
+        // load scheulders
+        this.loadSchedulers();
 
-        /*
+        console.log('[Transcorder.js].init()-> schedulers no:', Object.keys(this.schedulers).length);
+    }
 
-        // Create scheulders from streams
-        streams.forEach((stream) => {
-            const scheduler = new Scheduler(stream, schedulerSettings, ffmpegSettings);
-            
-            this.schedulers.push({
-                name: stream.name,
-                scheduler,
-                stream,
-            });
-        });
+    // create and load scheduler for each stream
+    loadSchedulers() {
+        // get streams form redux store
+        const streams = getStreamsFromStore(this.store, 'streams');
 
-        console.log('[Transcorder.js].init()-> schedulers no:', this.schedulers.length);
-        
-        */
+        // iterate through streams and create schedulers for each stream
+        Object.keys(streams).forEach(
+            (key) => {
+                // console.log(streams[key]);
+                const stream = streams[key];
+                const scheduler = new Scheduler(this.store, stream.id);
+                this.schedulers[stream.id] = scheduler;
+            },
+        );
     }
 }
 

@@ -6,6 +6,10 @@ import { DateTime } from 'luxon';
 // export constants
 export const DAY_IN_SECONDS = 86400;
 
+// END CONSTANTS
+// #####################################################
+// /////////////////////////////////////////////////////
+
 
 // //////////////////////////////////////////////////////
 // CONVERTERS
@@ -43,6 +47,10 @@ export const convertSecondsToDateTime = (seconds) => {
 
 export const secondsToMilliseconds = seconds => seconds * 1000;
 
+// END CONVERTERS
+// ///////////////////////////////////////////////////////
+// #######################################################
+
 
 // //////////////////////////////////////////////////////
 // GETTERS
@@ -55,7 +63,7 @@ export const currentTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) =
     const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addToDateTimeSecs;
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
-        throw new Error('Duration does not add to a full day! pls. add a duration that multiplays a minute in seconds');
+        throw new Error('Duration does not add to a full day! pls. add a duration that remainder to a minute in seconds is 0');
     }
 
     return timeInSeconds - (timeInSeconds % durationInSeconds);
@@ -84,6 +92,11 @@ export const diffToNextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0
 
     return diff;
 };
+
+// END GETTERDS
+// ///////////////////////////////////////////////////////
+// #######################################################
+
 
 // Default return current DateTime
 const dateTimeNow = () => DateTime.local();

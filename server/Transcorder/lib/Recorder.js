@@ -7,7 +7,7 @@ import { DateTime } from 'luxon';
 
 import * as helper from './helpers';
 
-class FFMPEG {
+class Recorder {
     processes = [];
     pipeline = [];
     onSuccessHooks = [];
@@ -230,4 +230,4 @@ class FFMPEG {
     }
 }
 
-export default FFMPEG;
+export default Recorder;

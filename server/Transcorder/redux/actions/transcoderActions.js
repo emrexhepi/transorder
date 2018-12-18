@@ -12,15 +12,34 @@ function getSettingsFromDB(settingName, db) {
     return settings;
 }
 
+// array to object with ids
+function arrayToObject(arr) {
+    // flatten array
+    const obj = arr.reduce((accumualtor, item, index) => {
+        // create new object
+        // if item does not have id set index as key
+        const key = item.id || index;
+        const newObj = {};
+        newObj[key] = item;
+
+        // assign newObj to accumulator and return it
+        return Object.assign(accumualtor, newObj);
+    }, {});
+    return obj;
+}
+
+// ##################################################
 // //////////////////////////////////////////////////
 
 // load streams from db to redux store
 export const loadStreamsToStore = (store, db) => {
     const streams = db.get('streams').value();
 
+    const objStreams = arrayToObject(streams);
+
     store.dispatch({
         type: actionTypes.STORE_STREAMS,
-        payload: streams,
+        payload: objStreams,
     });
 };
 

@@ -1,6 +1,6 @@
 import { createStore, combineReducers } from 'redux';
 
-import transcoder from './reducers/transcoder';
+import transcoder from './reducers/transcoderReducers';
 
 // Redux Setup
 

@@ -37,10 +37,19 @@
   ],
   "streams": [
     {
+      "id": "Klan_1",
       "name": "Klan",
       "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPlut/827.m3u8",
       "outputDirectory": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
-      "record": true,
+      "record": false,
+      "recDuration": 60
+    },
+    {
+      "id": "Klan_2",
+      "name": "Klan",
+      "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPlut/827.m3u8",
+      "outputDirectory": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
+      "record": false,
       "recDuration": 60
     }
   ],
