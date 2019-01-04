@@ -10,4 +10,16 @@ export function getStreamFromStore(store, streamId) {
     return getStreamsFromStore(store)[streamId];
 }
 
+// returns scheduler settings
+export function getSchedSettingsFromStore(store) {
+    const state = store.getState();
+    return state.transcoder.schedulerSettings;
+}
+
+// returns recorder settings
+export function getRecorderSettingsFromStore(store) {
+    const state = store.getState();
+    return state.transcoder.recorderSettings;
+}
+
 export default null;

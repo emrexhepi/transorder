@@ -5,7 +5,7 @@ import Scheduler from './lib/Scheduler';
 // redux imports
 import { 
     loadStreamsToStore, 
-    loadFfmpegSettingsToStore, 
+    loadRecorderSettingsToStore, 
     loadSchedulerSettingsToStore,
 } from './redux/actions/transcoderActions';
 
@@ -44,16 +44,14 @@ class Transcorder {
         // load streams in to redux store
         loadStreamsToStore(store, this.db);
 
-        // load ffmpeg settings in to redux store
-        loadFfmpegSettingsToStore(store, this.db);
+        // load recorder settings in to redux store
+        loadRecorderSettingsToStore(store, this.db);
 
         // load scheduler settings in to redux store
         loadSchedulerSettingsToStore(store, this.db);
 
         // load scheulders
         this.loadSchedulers();
-
-        console.log('[Transcorder.js].init()-> schedulers no:', Object.keys(this.schedulers).length);
     }
 
     // create and load scheduler for each stream

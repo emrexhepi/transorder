@@ -1,152 +1,134 @@
+/* eslint-disable consistent-return */
 // import libraries
 import fs from 'fs';
+// eslint-disable-next-line no-unused-vars
 import { DateTime } from 'luxon';
 import * as timeHelpers from './timeHelpers';
+import * as schedHelpers from './schedulerHelpers';
 import { makeRandomID } from './helpers';
 
 // import Recorder ( ffmpeg wrapper)
 import Recorder from './Recorder';
 
+// redux selectors
+import { 
+    getStreamFromStore,
+    getSchedSettingsFromStore,
+} from '../redux/selectors/transcoderSelectors';
+import { setStreamError } from '../redux/actions/transcoderActions';
+
 class Scheduler {
     instances = {};
     store = null;
-    streamId = '';
+    streamID = '';
     stream = {};
+    settigns = {};
+    schedTimeOut = null;
 
-    constructor(store, streamId) {
+    constructor(store, streamID) {
         // set parametters to obj attributes
         this.store = store;
-        this.streamId = streamId;
+        this.streamID = streamID;
 
-        // this.stream = stream;
-        // this.settings = schedulerSettings;
-        // this.FFMPEGSettings = ffmpegSettings;
-        // this.timeOutID = null;
-        // this.addedPreDurationSecs = 0;
-
-        // // initiate
-        // // console.log(`\nScheduler_${this.stream.name} is initiated!`);
-        // if (this.stream.record) {
-        //     this.initSchedule();
-        // }
-    }
-
-    initSchedule = () => {
-        // console.log(`Scheduler_${this.stream.name} is initiating!`);
+        // update stream and settings
+        this.updateStreamAndSettings();
         
-        // schedule next record
-        this.scheduleRecord();
+        // initiate
+        if (this.stream.record) {
+            this.scheduleRecord();
+        }
     }
 
-    scheduleRecord = (instanceId = null, reSchedule = true) => {
-        // get instance
-        const recInstance = this.getInstance(instanceId);
+    // get stream and settings from store and set them as attributes
+    updateStreamAndSettings() {
+        // get stream from store
+        this.stream = getStreamFromStore(this.store, this.streamID);
 
-        // console.log('\n\n[schduler.js] - scheduleRecord() ===============================');
-        // console.log(`Started at: ${DateTime.local().toISOTime()}`);
+        // get scheduler settings from store
+        this.settings = getSchedSettingsFromStore(this.store);
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    scheduleRecord = () => {
+        // update stream and settings
+        this.updateStreamAndSettings();
+
         // if recording is not enabled return null
         if (!this.stream.record) {
-            return;
+            return null;
         }
 
-        // setting checks
-        // check preDurationSecs
-        if (this.settings.preDurationSecs > this.stream.recDuration) {
-            throw Error('Error: Scheduler settings preDurationSecs is greater then stream duration!');
+        // check settings before record start
+        // if error save message to stream in redux store and return null;
+        try {
+            schedHelpers.checkSettings(this.settings, this.stream);
+        } catch (e) {
+            // push error to store in aprroperiate stream and disable recording
+            setStreamError(this.store, this.streamID, e.message, false);
+            console.log('Recording stoped for:', this.stream.id);
+            console.log('Error:', e.message);
+            return null;
         }
 
-        // check skipSecs
-        if (this.settings.skipSecs > this.settings.preDurationSecs + this.stream.recDuration) {
-            throw Error('Error: Scheduler settings skipSecs is greater then stream duration + scheduler preDurationSecs!');
-        }
-
-        // check stream record duration should be greater then 5secs
-        if (this.stream.recDuration < 5) {
-            throw Error('Error: Stream record duration should be greater then 5!');
-        }
-
-        // init properties
-        const diffToNextTimeSlot =
-            timeHelpers.diffToNextTimeSlotInSec(
+        // difference to next time slot
+        const diffToNextTimeSlot = timeHelpers.diffToNextTimeSlotInSec(
                 this.stream.recDuration,
-                this.addedPreDurationSecs,
-            );
+                this.settings.beforeTimeSlotSecs,
+        );
 
-        let { preDurationSecs, skipSecs } = this.settings;
-        const { afterDurationSecs } = this.settings;
-
-        // console.log('diffToNextTimeSlot: ', diffToNextTimeSlot);
-        let nextInterval = diffToNextTimeSlot - preDurationSecs;
+        console.log(diffToNextTimeSlot);
         
-        if (nextInterval < 5) {
-            nextInterval = diffToNextTimeSlot;
-            preDurationSecs = 0;
-            skipSecs = 0;
+
+        // if differenct to next interval is smaller then
+        // do not start record
+        if (diffToNextTimeSlot < this.settings.minDuration) {
+            console.log(`Waiting next time slot in les then ${this.settings.minDuration}`);
+            console.log(`Waiting next time slot in les then ${this.settings.minDuration}`);
+            // Schedule Another Record
+            setTimeout(this.scheduleRecord, diffToNextTimeSlot * 1000);
+            return null;
         }
-        // console.log('Next interval In: ', nextInterval);
 
         // calculate record duration
-        const recrodDuration =
-            nextInterval +
-            preDurationSecs +
-            afterDurationSecs;
-
-        // estimated end DateTime
-        const estimatedEndDateTime =
-            timeHelpers.convertSecondsToDateTime(
-                timeHelpers.convertDateTimeToSeconds(DateTime.local()) +
-                recrodDuration,
+        const recordDuration = 
+            Math.round(
+                diffToNextTimeSlot + 
+                this.settings.beforeTimeSlotSecs + 
+                this.settings.afterTimeSlotSecs,
             );
+            
+        // ####### Sart Record
+        this.record(recordDuration);
 
-        // calculate time
-        const recProps = {
-            skipSecs,
-            duration: recrodDuration,
-            startTime: timeHelpers.convertSecondsToDateTime(
-                timeHelpers.currentTimeSlotInSec(this.stream.recDuration),
-            ),
-            estimatedEndDateTime,
-        };
-
-        // do not start recording if 
-        if (recrodDuration > this.settings.dontRecordIfRemainingDuration) {
-            // start recording
-            this.record(recInstance, recProps);
-        } else {
-            // end this ass a successful record
-            this.onSuccess(recInstance.id);
-        }
-
-        if (reSchedule) {
-            // console.log('[schduler.js].scheduleRecord() -> Next record SCHEDULED!');
-            // scheudle timout
-            setTimeout(
-                this.scheduleRecord,
-                nextInterval * 1000,
-            );
-        }
-
-        // set added preduraion
-        this.addedPreDurationSecs = preDurationSecs;
-
-        // heap used after every schedule
-        const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        console.log('\x1b[32m%s\x1b[0m', 'The script uses approximately', (Math.round(used * 100) / 100), 'MB');
+        // Schedule Next Record
+        setTimeout(this.scheduleRecord, diffToNextTimeSlot * 1000);
     }
 
-    createInstance() {
-        // generate random intsance id
-        const id = makeRandomID();
-        // generate new instance
-        const ffmpeg = new Recorder(id, this.stream, this.FFMPEGSettings);
-        // create recInstance
-        const recInstance = {
-            id,
-            ffmpeg,
-            files: [],
-        };
+    record(recordDuration, id = null) {
+        // get instance
+        const recorder = this.getInstance(id);
 
-        return recInstance;
+        // start recording
+        recorder.start(recordDuration, this.settings.skipFirstSecs);
+    }
+
+    // returns an existing or new instance
+    getInstance(id = null) {
+        let instance = null;
+
+        // if id find on instances
+        if (id !== null) {
+            instance = this.findInstance(id);
+            this.addInstance(instance);
+        }
+
+        // if instance not found create new one
+        if (instance === null) {
+            instance = this.createInstance();
+        }
+
+        // if id is null create new one
+        return instance;
     }
 
     // returns ffmpegInstance or undefined
@@ -163,41 +145,26 @@ class Scheduler {
         return undefined;
     }
 
-    getInstance(id = null) {
-        // if id find on instances
-        if (id) {
-            return this.findInstance(id);
-        }
-        // if id is null create new one
-        return this.createInstance();
+    // creates a new recorder instance and returns it
+    createInstance() {
+        // generate random intsance id
+        const ID = `${this.streamID}_${makeRandomID()}`;
+
+        // generate new instance
+        const recorder = new Recorder(this.store, this.streamID, ID);
+
+        // return recorder
+        return recorder;
     }
 
+    // adss instance to the instances object
     addInstance(recInstance) {
-        this.instances[recInstance.id] = recInstance;
+        this.instances[recInstance.ID] = recInstance;
     }
 
-    removeInstance(id) {
-        delete this.instances[id];
-    }
-
-
-    record(recInstance, recProps) {
-        const { ffmpeg } = recInstance;
-
-        // set error and sucess hooks
-        ffmpeg.onSuccess((ffmpegMan) => {
-           this.onSuccess(ffmpegMan.ID);
-        });
-
-        ffmpeg.onError((ffmpegMan, error) => {
-            this.onError(ffmpegMan.ID, error);
-        });
-
-        // call record on ffmpeg
-        ffmpeg.record(recProps);
-
-        // push it to instances
-        this.addInstance(recInstance);
+    // removes instance from the instance object
+    removeInstance(ID) {
+        delete this.instances[ID];
     }
 
     // on record success

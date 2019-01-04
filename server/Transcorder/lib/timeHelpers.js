@@ -81,14 +81,15 @@ export const nextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
 };
 
 // return difference to next time slot
-export const diffToNextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
+export const diffToNextTimeSlotInSec = (recDuration, beforeTimeSlotSecs = 0) => {
     // get next time slot
-    const nextTimeSlot = nextTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
+    const nextTimeSlot = nextTimeSlotInSec(recDuration, beforeTimeSlotSecs);
 
     // calculate today time in seconds
     const todayTime = convertDateTimeToSeconds(DateTime.local());
+
     // calculate difference to next time slot
-    const diff = nextTimeSlot - todayTime;
+    const diff = nextTimeSlot - todayTime - beforeTimeSlotSecs;
 
     return diff;
 };

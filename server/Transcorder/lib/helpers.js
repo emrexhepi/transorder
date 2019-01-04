@@ -2,9 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 // return underline followed with a random string
-export const makeRandomID = () => 
-    `_${Math.random().toString(36).substr(2, 12)}`;
+export const makeRandomID = () => `_${Math.random().toString(36).substr(2, 12)}`;
 
+// creates the dir to the given path
 export const mkDirByPathSync = (targetDir, { isRelativeToScript = false } = {}) => {
     const { sep } = path;
     const initDir = path.isAbsolute(targetDir) ? sep : '';

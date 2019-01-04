@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import * as actionTypes from '../actions/actionTypes';
 
 // Initial State
@@ -19,12 +20,12 @@ function reducer(state = initState, action) {
                 },
             );
 
-        case actionTypes.STORE_FFMPEG_SETTINGS:
+        case actionTypes.STORE_RECORDER_SETTINGS:
             return Object.assign(
                 {},
                 state,
                 {
-                    ffmpegSettings: action.payload,
+                    recorderSettings: action.payload,
                 },
             );
 
@@ -34,6 +35,23 @@ function reducer(state = initState, action) {
                 state,
                 {
                     schedulerSettings: action.payload,
+                },
+            );
+
+        case actionTypes.SET_STREAM_ERROR: 
+            // get streams
+            const streams = Object.assign({}, state.streams);
+            // set error message
+            streams[action.streamId].error = action.payload;
+            // set record value
+            streams[action.streamId].record = action.record;
+
+            // return state
+            return Object.assign(
+                {},
+                state,
+                {
+                    streams,
                 },
             );
         

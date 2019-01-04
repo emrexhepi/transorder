@@ -7,35 +7,100 @@ import { DateTime } from 'luxon';
 
 import * as helper from './helpers';
 
+// import redux selectors
+import { 
+    getStreamFromStore,
+    getRecorderSettingsFromStore,
+} from '../redux/selectors/transcoderSelectors';
+
 class Recorder {
-    processes = [];
+    store = null;
+    streamID = '';
+    stream = {};
+    ID = '';
+    skipFirstSecs = 0;
+
+    process = null;
     pipeline = [];
-    onSuccessHooks = [];
-    onErrorHooks = [];
+
     outputDirectory = null;
     outputFileName = null;
     outputPath = null;
     fileExtension = '.mp4';
     finished = false;
 
-    constructor(ID, stream, settings) {
+    constructor(store, streamID, ID) {
+        this.store = store;
+        this.streamID = streamID;
         this.ID = ID;
-        this.stream = stream;
-        this.settings = settings;
+
+        this.updateStreamAndSettings();
+    }
+
+    // Start ffmpeg recording
+    start(recordDuration, skipFirstSecs = 0) {
+        this.skipFirstSecs = skipFirstSecs;
+        console.log('\n\nNew Record ====================================');
+        console.log('[Recorder.js].record() -> Now:\t\t\t', DateTime.local().toRFC2822());
+        console.log('[Recorder.js].record() -> Record ID:\t\t', this.ID);
+        console.log('[Recorder.js].record() -> Record Duration\t', recordDuration);
+        let dateTime = DateTime.local();
+        dateTime = dateTime.plus({ seconds: recordDuration });
+        console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
+    
+        // construct pipeline
+        const pipeline = this.createPipeline(recordDuration, skipFirstSecs);
+        console.log('ffmpeg', pipeline.join(' '));
+    
+    
+        // initiate ffmpeg process
+        const ffmpegProcess = 
+            execFile(
+                'ffmpeg',
+                pipeline,
+                (error, stdout, stderr) => {
+                    if (this.finished) {
+                        return;
+                    }
+    
+                    if (error || stderr) {
+                        console.log('FFMPEG STDERR - errored exit');
+                    }
+                    
+                    if (!stderr && !error) {
+                        console.log('FFMPEG STDERR - clean exit');
+                        // this.dispatch(this.onSuccessHooks, [this]);
+                    }
+    
+                    console.log(stderr);
+                },
+            );
+        
+        ffmpegProcess.on('exit', (code) => {
+            console.log(`\x1b[31mFFMPEG Exited with code ${code}!\x1b[0m`);
+        });
+    
+        this.process = ffmpegProcess;
+    
+        process.on('exit', this.onExitHandler);
+    }
+
+    // get streams from 
+    updateStreamAndSettings() {
+        this.stream = getStreamFromStore(this.store, this.streamID);
+        this.settings = getRecorderSettingsFromStore(this.store);
     }
 
     onExitHandler() {
         this.killProcesses();
     }
 
-    updateSettings(settings) {
-        this.settings = settings;
-    }
-
-    createFolderAndFileName(recProps) {
+    // return folder and file name
+    // and creates root directories
+    createFolderAndFileName() {
         // get ouput path
         let { outputDirectory } = this.stream;
-        const dateStr = recProps.startTime.toISODate();
+        const dateStr = DateTime.local().toISODate();
         const timeStr = DateTime.local().toFormat('HH-mm-ss');
         // check if outputDirectory has backslash
         if (outputDirectory[outputDirectory.length - 1] !== '\\') {
@@ -51,20 +116,19 @@ class Recorder {
 
         this.outputDirectory = outputDirectory;
 
-        // create filename
-        const filename = `${dateStr}_${timeStr}`;
+        // create filename and set it
+        this.outputFileName = `${dateStr}_${timeStr}`;
 
-        this.outputFileName = filename;
-
-        this.outputPath = outputDirectory + filename + this.fileExtension;
+        this.outputPath = outputDirectory + this.outputFileName + this.fileExtension;
 
         return this.outputPath;
     }
 
-    createPipeline(recProps) {
+    // creates the ffmpeg pipeline
+    createPipeline(recordDuration, skipSecs) {
         const { global, inputPipe, outputPipe } = this.settings;
 
-        const outputPath = this.createFolderAndFileName(recProps);
+        const outputPath = this.createFolderAndFileName();
 
         this.outputPath = outputPath;
     
@@ -92,7 +156,7 @@ class Recorder {
         Object.keys(inputPipe).forEach((key) => {
             switch (key) {
                 case '-ss':
-                    pushToPipeLine(key, recProps.skipSecs);
+                    pushToPipeLine(key, skipSecs);
                     break;
                 case '-i':
                     pushToPipeLine(key, this.stream.input);
@@ -107,7 +171,7 @@ class Recorder {
         Object.keys(outputPipe).forEach((key) => {
             switch (key) {
                 case '-t':
-                    pushToPipeLine(key, recProps.duration);
+                    pushToPipeLine(key, recordDuration);
                     break;
                 case '-y':
                     pushToPipeLine(key, outputPath);
@@ -121,58 +185,13 @@ class Recorder {
         return pipeline;
     }
 
-    // Start ffmpeg recording
-    record(_recProps) {
-        console.log(`[FMPEGMan.js].record() ${this.stream.name}\
-            at ${DateTime.local().toISOTime()}`);
-
-        const recProps = _recProps;
-        // set duration to no decimal
-        recProps.duration = recProps.duration.toFixed(0);
-        // construct pipeline
-        const pipeline = this.createPipeline(recProps);
-        console.log('ffmpeg', pipeline.join(' '));
-
-        // initiate ffmpeg process
-        const ffmpegProcess = 
-            execFile(
-                'ffmpeg',
-                pipeline,
-                (error, stdout, stderr) => {
-                    if (this.finished) {
-                        return;
-                    }
-
-                    if (error || stderr) {
-                        // console.log('FFMPEG STDERR - errored exit');
-                        this.dispatch(this.onErrorHooks, [this, error]);
-                    }
-                    
-                    if (!stderr && !error) {
-                        // console.log('FFMPEG STDERR - clean exit');
-                        this.dispatch(this.onSuccessHooks, [this]);
-                    }
-
-                    console.log(stderr);
-                },
-            );
-        
-        ffmpegProcess.on('exit', (code) => {
-            console.log(`\x1b[31mFFMPEG Exited with code ${code}!\x1b[0m`);
-        });
-
-        this.processes.push(ffmpegProcess);
-
-        // process.on('exit', this.onExitHandler);
-    }
-
     isFunction(functionToCheck) {
         return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
     }
 
     onError(func) {
         // check if function
-        if (!this.isFunction) {
+        if (!this.isFunction(func)) {
             throw new Error('Please insert function!');
         }
 
@@ -182,7 +201,7 @@ class Recorder {
 
     onSuccess(func) {
         // check if function
-        if (!this.isFunction) {
+        if (!this.isFunction(func)) {
             throw new Error('Please add function as a parametter!');
         }
 
@@ -214,6 +233,7 @@ class Recorder {
         this.processes = [];
     }
 
+    // kill all ffmpeg processes
     killProcesses(signal = 'SIGINT') {
         // console.log('Killing FFMPEG child processes!');
         this.processes.forEach((ffmpegProcess) => {
@@ -223,6 +243,8 @@ class Recorder {
         this.processes = [];
     }
 
+    // remove the exit listener
+    // ** sensitive on memory leak **
     removeOnExitListener() {
         if (this.exitProccessHook) {
             process.removeListener(this.onExitHandler);
