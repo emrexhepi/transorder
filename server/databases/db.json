@@ -40,9 +40,9 @@
       "id": "Klan_1",
       "name": "Klan",
       "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPlut/827.m3u8",
-      "outputDirectory": "C:\\Users\\em_re\\Desktop\\RecordsIPTV\\",
+      "outputDirectory": "C:\\Users\\IG\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 300
+      "recDuration": 7200
     }
   ],
   "user": {},

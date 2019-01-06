@@ -73,9 +73,11 @@ class Recorder {
                     }
     
                     console.log(stderr);
+                    console.log(error);
+                    console.log(stdout);
                 },
             );
-        
+            
         ffmpegProcess.on('exit', (code) => {
             console.log(`\x1b[31mFFMPEG Exited with code ${code}!\x1b[0m`);
         });
