@@ -10,7 +10,10 @@ const initState = {
 
 // reducers
 function reducer(state = initState, action) {
+    let streams = {};
     switch (action.type) {
+        // ///////////////////////////////////
+        // ##### GENERAL REDUCERS
         case actionTypes.STORE_STREAMS:
             return Object.assign(
                 {},
@@ -40,11 +43,11 @@ function reducer(state = initState, action) {
 
         case actionTypes.SET_STREAM_ERROR: 
             // get streams
-            const streams = Object.assign({}, state.streams);
+            streams = Object.assign({}, state.streams);
             // set error message
-            streams[action.streamId].error = action.payload;
+            streams[action.streamID].error = action.payload;
             // set record value
-            streams[action.streamId].record = action.record;
+            streams[action.streamID].record = action.record;
 
             // return state
             return Object.assign(
@@ -55,6 +58,17 @@ function reducer(state = initState, action) {
                 },
             );
         
+         // ///////////////////////////////////
+        // ##### RECORDER REDUCERS
+        case actionTypes.SET_RECORDER_TO_STREAM:
+            // get streams
+            streams = Object.assign({}, state.streams);
+            console.log(streams);
+            streams[action.streamID].recordingLogs[action.recorderID] = {};
+            streams[action.streamID].recordingLogs[action.recorderID] = action.payload;
+            
+            return streams;
+
         default:
             return state;
     }

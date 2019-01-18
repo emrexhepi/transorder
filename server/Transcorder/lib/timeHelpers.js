@@ -58,9 +58,9 @@ export const secondsToMilliseconds = seconds => seconds * 1000;
 // return local datetime
 export const currentDayTime = () => DateTime.local();
 
-// return DateTime time-slot
-export const currentTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
-    const timeInSeconds = convertDateTimeToSeconds(DateTime.local()) + addToDateTimeSecs;
+// return current time slot in seconds
+export const currentTimeSlotInSec = (durationInSeconds, skipFirstSecs = 0) => {
+    const timeInSeconds = convertDateTimeToSeconds(DateTime.local());
 
     if (DAY_IN_SECONDS % durationInSeconds !== 0) {
         throw new Error('Duration does not add to a full day! pls. add a duration that remainder to a minute in seconds is 0');
@@ -69,30 +69,45 @@ export const currentTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) =
     return timeInSeconds - (timeInSeconds % durationInSeconds);
 };
 
-// return next time-slot
-export const nextTimeSlotInSec = (durationInSeconds, addToDateTimeSecs = 0) => {
-    // get current time slot
-    const currentTimeSlot = currentTimeSlotInSec(durationInSeconds, addToDateTimeSecs);
-
-    // calculate nextTimeSlot
-    const nextTimeSlot = currentTimeSlot + durationInSeconds;
-    // console.log('nextTimeSlot: ', nextTimeSlot);
-    return nextTimeSlot;
+// current Time Slot
+export const currentTimeSlot = (durationInSeconds, skipFirstSecs = 0) => {
+    const currentTimeSlotSecs = currentTimeSlotInSec(durationInSeconds, skipFirstSecs);
+    return convertSecondsToDateTime(currentTimeSlotSecs);
 };
 
-// return difference to next time slot
-export const diffToNextTimeSlotInSec = (recDuration, beforeTimeSlotSecs = 0) => {
-    // get next time slot
-    const nextTimeSlot = nextTimeSlotInSec(recDuration, beforeTimeSlotSecs);
+// Next Time Slot
+export const nextTimeSlot = (recDuration = 60, currentTS = null) => {
+    if (!currentTS) {
+        return currentTimeSlot(recDuration).plus({
+            seconds: recDuration,
+        });
+    } 
 
-    // calculate today time in seconds
-    const todayTime = convertDateTimeToSeconds(DateTime.local());
-
-    // calculate difference to next time slot
-    const diff = nextTimeSlot - todayTime - beforeTimeSlotSecs;
-
-    return diff;
+    return currentTS.plus({
+        seconds: recDuration,
+    });
 };
+
+// returns difference to next time slot as DURATION
+export const schedToNextTimeSlot = (recDuration = 60, fromTimeSlot = null) => {
+    // DateTime
+    const currentTS = fromTimeSlot || currentTimeSlot(recDuration);
+    // DateTime
+    const nextTS = nextTimeSlot(recDuration, currentTS);
+    // Duration
+    const diffToNextTS = nextTS.diffNow();
+    // Seconds
+    const diffToNextTSSec = diffToNextTS.values.milliseconds / 1000;
+
+    return {
+        recDuration,
+        currentTS,
+        nextTS,
+        diffToNextTS,
+        diffToNextTSSec,
+    };
+};
+
 
 // END GETTERDS
 // ///////////////////////////////////////////////////////

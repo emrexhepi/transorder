@@ -15,14 +15,17 @@ import {
     getStreamFromStore,
     getSchedSettingsFromStore,
 } from '../redux/selectors/transcoderSelectors';
-import { setStreamError } from '../redux/actions/transcoderActions';
+import { 
+    setStreamError,
+    setRecorderToStream,
+} from '../redux/actions/transcoderActions';
 
 class Scheduler {
     instances = {};
     store = null;
     streamID = '';
     stream = {};
-    settigns = {};
+    settings = {};
     schedTimeOut = null;
 
     constructor(store, streamID) {
@@ -49,7 +52,8 @@ class Scheduler {
     }
 
     // eslint-disable-next-line no-unused-vars
-    scheduleRecord = () => {
+    scheduleRecord = (id = null, fromTimeSlot = null) => {
+        console.log('START SCHEDULE=============================');
         // update stream and settings
         this.updateStreamAndSettings();
 
@@ -70,46 +74,96 @@ class Scheduler {
             return null;
         }
 
-        // difference to next time slot
-        const diffToNextTimeSlot = timeHelpers.diffToNextTimeSlotInSec(
-                this.stream.recDuration,
-                this.settings.beforeTimeSlotSecs,
+        // next schedule
+        const nextSchedule = timeHelpers.schedToNextTimeSlot(
+            this.stream.recDuration, fromTimeSlot,
         );
+        
+        // difference to next time slot
+        const diffToNextTimeSlot = nextSchedule.diffToNextTSSec;
 
         console.log(diffToNextTimeSlot);
+        console.log('current time:\t\t', timeHelpers.currentDayTime().toRFC2822());
+        console.log('current TimeSLOT:\t', nextSchedule.currentTS.toRFC2822());
+        console.log('next TimeSLOT:\t\t', nextSchedule.nextTS.toRFC2822());
+        console.log('diffto TimeSLOT:\t\t', diffToNextTimeSlot);
         
-
-        // if differenct to next interval is smaller then
-        // do not start record
-        if (diffToNextTimeSlot < this.settings.minDuration) {
-            console.log(`Waiting next time slot in les then ${this.settings.minDuration}`);
-            console.log(`Waiting next time slot in les then ${this.settings.minDuration}`);
-            // Schedule Another Record
-            setTimeout(this.scheduleRecord, diffToNextTimeSlot * 1000);
-            return null;
+        // start recording
+        let $skipFirstSecs = this.settings.skipFirstSecs;
+        // if there is an ID means first try did not record succesfully
+        // or the calculated record duration is ~ not equal to record duration
+        // or skipfirst secs more the duration
+        // then there is no need to skip seconds
+        if (
+            id !== null 
+            ) {
+                $skipFirstSecs = 0;
         }
 
         // calculate record duration
         const recordDuration = 
             Math.round(
-                diffToNextTimeSlot + 
-                this.settings.beforeTimeSlotSecs + 
-                this.settings.afterTimeSlotSecs,
+                (diffToNextTimeSlot +
+                this.settings.afterTimeSlotSecs) -
+                $skipFirstSecs,
             );
-            
+        console.log('recordDuration: ', recordDuration);
+        
+        // if differenct to next interval is smaller then
+        // minimum allowed or skipfirst seconds
+        // do not start record
+        if (
+            recordDuration < this.settings.minDuration
+           ) {
+            // if next to time slot is les then minimum duration
+            if (diffToNextTimeSlot < this.settings.minDuration) {
+                console.log('Diff to next timeslot is smaller then minDuration: ', this.settings.minDuration);
+            }
+
+            // if next to time slot is les then skip first seconds
+            if (diffToNextTimeSlot < this.settings.skipFirstSecs) {
+                console.log('Diff to next timeslot is smaller the skipFirstSecs: ', this.settings.skipFirstSecs);
+            }
+
+            // Schedule Another Record
+            const nextCleanSchedule = timeHelpers.secondsToMilliseconds(diffToNextTimeSlot);
+            console.log(`Waiting next time slot in les then ${nextCleanSchedule}`);
+
+            // process.exit();
+            setTimeout(() => {
+                this.scheduleRecord(null, nextSchedule.nextTS);
+            }, diffToNextTimeSlot * 1000);
+            return null;
+        }
+
         // ####### Sart Record
-        this.record(recordDuration);
-
-        // Schedule Next Record
-        setTimeout(this.scheduleRecord, diffToNextTimeSlot * 1000);
-    }
-
-    record(recordDuration, id = null) {
         // get instance
         const recorder = this.getInstance(id);
+        recorder.start(recordDuration, $skipFirstSecs);
+        
+        // setRecorderToStream(
+        //     this.store,
+        //     this.streamID,
+        //     recorder.ID,
+        //     {
+        //         recordDuration,
+        //     },
+        // );
 
-        // start recording
-        recorder.start(recordDuration, this.settings.skipFirstSecs);
+        // console.log(this.stream);
+        
+        
+        // Schedule next record
+        const nextScheduleSecs = diffToNextTimeSlot - this.settings.skipFirstSecs;
+        console.log('next record starts at: ', DateTime.local().plus({ seconds: nextScheduleSecs }).toRFC2822());
+        // ####### Schedule Next Record
+        if (!id) {
+            setTimeout(() => {
+                this.scheduleRecord(null, nextSchedule.nextTS);
+            }, nextScheduleSecs * 1000);
+        }
+
+        console.log('END SCHEDULE=============================');
     }
 
     // returns an existing or new instance
@@ -117,14 +171,14 @@ class Scheduler {
         let instance = null;
 
         // if id find on instances
-        if (id !== null) {
+        if (id) {
             instance = this.findInstance(id);
-            this.addInstance(instance);
         }
 
         // if instance not found create new one
-        if (instance === null) {
+        if (!instance) {
             instance = this.createInstance();
+            this.addInstance(instance);
         }
 
         // if id is null create new one
@@ -169,7 +223,6 @@ class Scheduler {
 
     // on record success
     onSuccess = (instanceID) => {
-        // console.log(`[Schedule.js].record -> ${instanceID} finished recording`);
         // get instance by id
         const instance = this.getInstance(instanceID);
 
@@ -191,7 +244,6 @@ class Scheduler {
                 if (err) {
                     throw err;
                 }
-                // console.log(err);
             });
         }
 

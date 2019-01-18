@@ -6,8 +6,8 @@ export function getStreamsFromStore(store) {
 }
 
 // returns stream by id from store
-export function getStreamFromStore(store, streamId) {
-    return getStreamsFromStore(store)[streamId];
+export function getStreamFromStore(store, streamID) {
+    return getStreamsFromStore(store)[streamID];
 }
 
 // returns scheduler settings

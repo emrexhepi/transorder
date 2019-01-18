@@ -3,14 +3,16 @@
     {
       "name": "recorder",
       "data": {
+        "fileExtension": ".mp4",
         "global": {
           "-loglevel": "error",
           "-hide_banner": "",
-          "-timeout": 5000000
+          "-timeout": 30
         },
         "inputPipe": {
           "-ss": "{skip seconds}",
-          "-i": "{input}"
+          "-i": "{input}",
+          "-max_muxing_queue_size": 500
         },
         "outputPipe": {
           "-t": "{duration}",
@@ -26,11 +28,10 @@
     {
       "name": "scheduler",
       "data": {
-        "skipFirstSecs": 0,
-        "beforeTimeSlotSecs": 0,
+        "skipFirstSecs": 10,
         "afterTimeSlotSecs": 0,
         "restartRecord": true,
-        "minDuration": 5,
+        "minDuration": 10,
         "reScheduleTimeout": 5
       }
     }
@@ -38,11 +39,11 @@
   "streams": [
     {
       "id": "Klan_1",
-      "name": "Klan",
-      "input": "http://cmskos.fastiptv.org:777/live/em.rexhepi/o02c7mPlut/827.m3u8",
+      "name": "N24",
+      "input": "http://tv.balkanweb.com:8081/news24/livestream/chunks.m3u8?nimblesessionid=46906716",
       "outputDirectory": "C:\\Users\\IG\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 7200
+      "recDuration": 60
     }
   ],
   "user": {},

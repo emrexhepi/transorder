@@ -34,6 +34,9 @@ function arrayToObject(arr, defaults = {}) {
 // ##################################################
 // //////////////////////////////////////////////////
 
+// //////////////////////////////////////////////////
+// General Actions
+
 // load streams from db to redux store
 export const loadStreamsToStore = (store, db) => {
     const streams = db.get('streams').value();
@@ -43,12 +46,10 @@ export const loadStreamsToStore = (store, db) => {
         recording: false,
         recorders: {},
         error: '',
+        recordingLogs: {},
     };
 
     const objStreams = arrayToObject(streams, streamDefaults);
-
-    // set defaults to stream
-
 
     store.dispatch({
         type: actionTypes.STORE_STREAMS,
@@ -77,13 +78,28 @@ export const loadSchedulerSettingsToStore = (store, db) => {
 };
 
 // set stream error
-export const setStreamError = (store, streamId, errorMessage, record) => {
+export const setStreamError = (store, streamID, errorMessage, record) => {
     store.dispatch({
         type: actionTypes.SET_STREAM_ERROR,
-        streamId,
+        streamID,
         record,
         payload: errorMessage,
     });
+};
+
+
+// //////////////////////////////////////////////////
+// Recorder Actions
+
+export const setRecorderToStream = (store, streamID, recorderID, payload) => {
+    store.dispatch({
+        type: actionTypes.SET_RECORDER_TO_STREAM,
+        streamID,
+        recorderID,
+        payload,
+    });
+    console.log('Set Recroder: ');
+    console.log(streamID, recorderID, payload);
 };
 
 export default null;

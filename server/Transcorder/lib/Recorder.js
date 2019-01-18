@@ -1,10 +1,7 @@
 // import process libraries
 import kill from 'tree-kill';
-
 import { execFile } from 'child_process';
-
 import { DateTime } from 'luxon';
-
 import * as helper from './helpers';
 
 // import redux selectors
@@ -19,14 +16,12 @@ class Recorder {
     stream = {};
     ID = '';
     skipFirstSecs = 0;
-
     process = null;
     pipeline = [];
 
     outputDirectory = null;
     outputFileName = null;
     outputPath = null;
-    fileExtension = '.mp4';
     finished = false;
 
     constructor(store, streamID, ID) {
@@ -41,6 +36,7 @@ class Recorder {
     start(recordDuration, skipFirstSecs = 0) {
         this.skipFirstSecs = skipFirstSecs;
         console.log('\n\nNew Record ====================================');
+        console.log('skipFirstSecs:', this.skipFirstSecs);
         console.log('[Recorder.js].record() -> Now:\t\t\t', DateTime.local().toRFC2822());
         console.log('[Recorder.js].record() -> Record ID:\t\t', this.ID);
         console.log('[Recorder.js].record() -> Record Duration\t', recordDuration);
@@ -49,7 +45,7 @@ class Recorder {
         console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
     
         // construct pipeline
-        const pipeline = this.createPipeline(recordDuration, skipFirstSecs);
+        const pipeline = this.createPipeline(recordDuration, this.skipFirstSecs);
         console.log('ffmpeg', pipeline.join(' '));
     
     
@@ -93,25 +89,20 @@ class Recorder {
         this.settings = getRecorderSettingsFromStore(this.store);
     }
 
-    onExitHandler() {
-        this.killProcesses();
-    }
-
-    // return folder and file name
-    // and creates root directories
+    // return folder and file name and creates root directories
     createFolderAndFileName() {
         // get ouput path
         let { outputDirectory } = this.stream;
-        const dateStr = DateTime.local().toISODate();
+        const dateStrFolder = DateTime.local().toFormat('yyyy-MM-dd');
+        const dateStrFile = DateTime.local().toFormat('yyyyMMdd');
         const timeStr = DateTime.local().toFormat('HH-mm-ss');
         // check if outputDirectory has backslash
         if (outputDirectory[outputDirectory.length - 1] !== '\\') {
             outputDirectory += '\\';
         }
-
         
         // add stream name to directory
-        outputDirectory += `${this.stream.name}\\${dateStr}\\`;
+        outputDirectory += `${this.stream.name}\\${dateStrFolder}\\`;
         
         // check and create folder
         helper.mkDirByPathSync(outputDirectory);
@@ -119,9 +110,9 @@ class Recorder {
         this.outputDirectory = outputDirectory;
 
         // create filename and set it
-        this.outputFileName = `${dateStr}_${timeStr}`;
+        this.outputFileName = `${this.stream.name}_${dateStrFile}_${timeStr}`;
 
-        this.outputPath = outputDirectory + this.outputFileName + this.fileExtension;
+        this.outputPath = outputDirectory + this.outputFileName + this.settings.fileExtension;
 
         return this.outputPath;
     }
@@ -190,67 +181,14 @@ class Recorder {
     isFunction(functionToCheck) {
         return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
     }
-
-    onError(func) {
-        // check if function
-        if (!this.isFunction(func)) {
-            throw new Error('Please insert function!');
-        }
-
-        // this function should be overrided
-        this.onErrorHooks.push(func);
-    }
-
-    onSuccess(func) {
-        // check if function
-        if (!this.isFunction(func)) {
-            throw new Error('Please add function as a parametter!');
-        }
-
-        // this function should be overrided
-        this.onSuccessHooks.push(func);
-    }
-
-    dispatch(hooks, props) {
-        // dispatch each hook
-        hooks.forEach((hook) => {
-            hook(...props);
-        });
-    }
-
-    resetHooks() {
-        this.onSuccessHooks = [];
-        this.onErrorHooks = [];
-    }
     
     // stop ffmpeg recording instances
-    stopRecord(finished = false) {
-        if (finished) {
-            this.finished = true;
-        }
-
-        // kill all processes
-        this.killProcesses();
-
-        this.processes = [];
+    stopRecord() {
+        // kill(this.process.pid, 'SIGINT');
     }
 
-    // kill all ffmpeg processes
-    killProcesses(signal = 'SIGINT') {
-        // console.log('Killing FFMPEG child processes!');
-        this.processes.forEach((ffmpegProcess) => {
-            kill(ffmpegProcess.pid, signal);
-        });
-
-        this.processes = [];
-    }
-
-    // remove the exit listener
-    // ** sensitive on memory leak **
-    removeOnExitListener() {
-        if (this.exitProccessHook) {
-            process.removeListener(this.onExitHandler);
-        }
+    onExitHandler() {
+        // this.stopRecord();
     }
 }
 
