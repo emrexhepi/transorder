@@ -6,11 +6,13 @@ const initState = {
     streams: [],
     ffmpegSettings: {},
     schedulerSettings: {},
+    recorders: {},
 };
 
 // reducers
 function reducer(state = initState, action) {
-    let streams = {};
+    let recorders = {};
+    
     switch (action.type) {
         // ///////////////////////////////////
         // ##### GENERAL REDUCERS
@@ -22,7 +24,8 @@ function reducer(state = initState, action) {
                     streams: action.payload,
                 },
             );
-
+            
+        // add recorder settings to store
         case actionTypes.STORE_RECORDER_SETTINGS:
             return Object.assign(
                 {},
@@ -31,7 +34,8 @@ function reducer(state = initState, action) {
                     recorderSettings: action.payload,
                 },
             );
-
+        
+        // add schedule settings in to store
         case actionTypes.STORE_SCHEDULER_SETTINGS:
             return Object.assign(
                 {},
@@ -40,34 +44,91 @@ function reducer(state = initState, action) {
                     schedulerSettings: action.payload,
                 },
             );
+        
+        // ///////////////////////////////////
+        // ##### RECORDER REDUCERS
 
-        case actionTypes.SET_STREAM_ERROR: 
-            // get streams
-            streams = Object.assign({}, state.streams);
-            // set error message
-            streams[action.streamID].error = action.payload;
-            // set record value
-            streams[action.streamID].record = action.record;
+        // add recorder info in to store
+        case actionTypes.SET_RECORDER:
+            const recorder = {};
+            const { ID } = action.payload;
+            recorder[ID] = {
+                ...action.payload,
+                fileLogs: [],
+            };
 
-            // return state
-            return Object.assign(
+            recorders = Object.assign(state.recorders, recorder);
+
+            const newState = {
+                ...state,
+                recorders,
+            };
+            
+            return newState;
+
+        // update recorder
+        case actionTypes.UPDATE_RECORDER:
+            recorders = Object.assign({}, state.recorders);
+            recorders[action.payload.ID] = Object.assign(
                 {},
-                state,
+                state.recorders[action.payload.ID],
                 {
-                    streams,
+                    recordDuration: action.payload.recordDuration,
+                    schedule: action.payload.schedule,
                 },
             );
+
+            return {
+                ...state,
+                recorders,
+            };
+
         
-         // ///////////////////////////////////
-        // ##### RECORDER REDUCERS
-        case actionTypes.SET_RECORDER_TO_STREAM:
-            // get streams
-            streams = Object.assign({}, state.streams);
-            console.log(streams);
-            streams[action.streamID].recordingLogs[action.recorderID] = {};
-            streams[action.streamID].recordingLogs[action.recorderID] = action.payload;
-            
-            return streams;
+        // update logs of recorder
+        case actionTypes.PUSH_LOG_TO_RECORDER:
+            recorders = Object.assign({}, state.recorders);
+            recorders[action.ID] = Object.assign(
+                {},
+                state.recorders[action.ID],
+                {
+                    fileLogs: [
+                        ...recorders[action.ID].fileLogs,
+                        action.payload,
+                    ],
+                },
+            );
+    
+            return {
+                ...state,
+                recorders,
+            };
+        
+        // change recorder field
+        case actionTypes.UPDATE_RECORDER_FIELD:
+            recorders = Object.assign({}, state.recorders);
+            recorders[action.ID] = Object.assign(
+                {},
+                state.recorders[action.ID],
+                action.payload,
+            );
+
+            return {
+                ...state,
+                recorders,
+            };
+
+        // remove recorder from store
+        case actionTypes.REMOVE_RECORDER:
+            recorders = Object.assign({}, state.recorders);
+
+            if (typeof recorders[action.payload.ID] !== 'undefined') {
+                delete recorders[action.payload.ID];
+            }
+
+            return {
+                ...state,
+                recorders,
+            };
 
         default:
             return state;

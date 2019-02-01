@@ -5,19 +5,24 @@ import fs from 'fs';
 import { DateTime } from 'luxon';
 import * as timeHelpers from './timeHelpers';
 import * as schedHelpers from './schedulerHelpers';
-import { makeRandomID } from './helpers';
+import { makeRandomID, getMediaInfo, saveJsonObjToFile } from './helpers';
 
 // import Recorder ( ffmpeg wrapper)
 import Recorder from './Recorder';
 
-// redux selectors
+// redux imports
+import * as actionTypes from '../redux/actions/actionTypes';
 import { 
     getStreamFromStore,
     getSchedSettingsFromStore,
+    getRecorderFromStore,
 } from '../redux/selectors/transcoderSelectors';
 import { 
     setStreamError,
-    setRecorderToStream,
+    setRecorderToStore,
+    removeRecorderFromStore,
+    updateRecorderToStore,
+    pushLogToRecorder,
 } from '../redux/actions/transcoderActions';
 
 class Scheduler {
@@ -27,6 +32,7 @@ class Scheduler {
     stream = {};
     settings = {};
     schedTimeOut = null;
+    unsubscribeStore = null;
 
     constructor(store, streamID) {
         // set parametters to obj attributes
@@ -40,8 +46,17 @@ class Scheduler {
         if (this.stream.record) {
             this.scheduleRecord();
         }
+
+        // subscribe to stores last action
+        this.unsubscribeStore = this.store.subscribe(() => {
+            // if action type FINISHED_RECORD call handle
+            if (store.getState().lastAction.type === actionTypes.FINISHED_RECORD) {
+                this.handleFinishRecords(store.getState().lastAction);
+            }
+        });
     }
 
+    
     // get stream and settings from store and set them as attributes
     updateStreamAndSettings() {
         // get stream from store
@@ -51,9 +66,97 @@ class Scheduler {
         this.settings = getSchedSettingsFromStore(this.store);
     }
 
+    // check for finished records
+    async handleFinishRecords(action) {
+        //test
+        return;
+
+        // var init
+        let restartRecord = false;
+        let log = {};
+
+        // check if instance is from this scheduler elser return null
+        if (typeof this.instances[action.recorderID] === 'undefined') return null;
+        
+        // get recorder from store
+        const recorderInfo = getRecorderFromStore(this.store, action.recorderID);
+
+        // console.log(recorderInfo);
+        // get file info
+        const { fileExists, corrupted, duration } = await getMediaInfo(action.path.outputPath);
+
+        log = {
+            filePath: action.path.outputPath,
+            fileExists,
+            corrupted,
+            duration,
+            errors: [],
+        };
+
+        // restart record checks
+        if (!fileExists) {
+            log.errors.push('File does not exist!');
+            restartRecord = true;
+        }
+        
+        if (corrupted) {
+            log.errors.push('File corrupted!');
+            restartRecord = true;
+        }
+
+        // if file duration is less then record duration
+        if (duration !== 0 && duration < recorderInfo.recordDuration) {
+            log.errors.push('Duration is smaller then set, record stoped without corruption before finish!');
+            restartRecord = true;
+        }
+
+        // if payload has error
+        // push error to log
+        if (action.payload.error) {
+            log.errors.push(action.payload.error.message);
+        }
+
+        // push log to redux store
+        pushLogToRecorder(this.store, action.recorderID, log);
+
+        // restart record
+        if (restartRecord) {
+            // restart recording
+            setTimeout(() => {
+                console.log('RESTARTING RECORD!!!!!');
+                this.scheduleRecord(action.recorderID, recorderInfo.schedule.currentTS);
+            }, this.settings.reScheduleTimeout * 1000);
+
+            return;
+        }
+
+        // do not restart & clean
+        this.clearRecorder(action.recorderID);
+    }
+
+    clearRecorder(id, forceSaveLog = false) {
+        console.log('Clearing Record!');
+        const recorderInfo = getRecorderFromStore(this.store, id);
+        const recorderInstance = this.instances[id];
+
+        // save logs
+        if (recorderInfo.fileLogs.length > 1 || forceSaveLog) {
+            saveJsonObjToFile(recorderInfo.fileLogs, `${recorderInfo.basePath.outputPath}.json`);
+        }
+
+        // clear the recorder
+        recorderInstance.cleanExit();
+
+        // delete recorder from store
+        removeRecorderFromStore(this.store, id);
+
+        // release recorder from scheduler
+        delete this.instances[id];
+    }
+
     // eslint-disable-next-line no-unused-vars
     scheduleRecord = (id = null, fromTimeSlot = null) => {
-        console.log('START SCHEDULE=============================');
+        // console.log('START SCHEDULE=============================');
         // update stream and settings
         this.updateStreamAndSettings();
 
@@ -69,8 +172,8 @@ class Scheduler {
         } catch (e) {
             // push error to store in aprroperiate stream and disable recording
             setStreamError(this.store, this.streamID, e.message, false);
-            console.log('Recording stoped for:', this.stream.id);
-            console.log('Error:', e.message);
+            // console.log('Recording stoped for:', this.stream.id);
+            // console.log('Error:', e.message);
             return null;
         }
 
@@ -82,16 +185,16 @@ class Scheduler {
         // difference to next time slot
         const diffToNextTimeSlot = nextSchedule.diffToNextTSSec;
 
-        console.log(diffToNextTimeSlot);
-        console.log('current time:\t\t', timeHelpers.currentDayTime().toRFC2822());
-        console.log('current TimeSLOT:\t', nextSchedule.currentTS.toRFC2822());
-        console.log('next TimeSLOT:\t\t', nextSchedule.nextTS.toRFC2822());
-        console.log('diffto TimeSLOT:\t\t', diffToNextTimeSlot);
+        // console.log(diffToNextTimeSlot);
+        // console.log('current time:\t\t', timeHelpers.currentDayTime().toRFC2822());
+        // console.log('current TimeSLOT:\t', nextSchedule.currentTS.toRFC2822());
+        // console.log('next TimeSLOT:\t\t', nextSchedule.nextTS.toRFC2822());
+        // console.log('diffto TimeSLOT:\t\t', diffToNextTimeSlot);
         
         // start recording
         let $skipFirstSecs = this.settings.skipFirstSecs;
         // if there is an ID means first try did not record succesfully
-        // or the calculated record duration is ~ not equal to record duration
+        // or the calculated record duration is not ~equal to record duration
         // or skipfirst secs more the duration
         // then there is no need to skip seconds
         if (
@@ -107,7 +210,7 @@ class Scheduler {
                 this.settings.afterTimeSlotSecs) -
                 $skipFirstSecs,
             );
-        console.log('recordDuration: ', recordDuration);
+        // console.log('recordDuration: ', recordDuration);
         
         // if differenct to next interval is smaller then
         // minimum allowed or skipfirst seconds
@@ -117,53 +220,84 @@ class Scheduler {
            ) {
             // if next to time slot is les then minimum duration
             if (diffToNextTimeSlot < this.settings.minDuration) {
-                console.log('Diff to next timeslot is smaller then minDuration: ', this.settings.minDuration);
+                // console.log(
+                //     'Diff to next timeslot is smaller then minDuration:',
+                //     this.settings.minDuration,
+                // );
             }
 
             // if next to time slot is les then skip first seconds
             if (diffToNextTimeSlot < this.settings.skipFirstSecs) {
-                console.log('Diff to next timeslot is smaller the skipFirstSecs: ', this.settings.skipFirstSecs);
+                // console.log(
+                //     'Diff to next timeslot is smaller the skipFirstSecs:',
+                //     this.settings.skipFirstSecs,
+                // );
             }
 
             // Schedule Another Record
             const nextCleanSchedule = timeHelpers.secondsToMilliseconds(diffToNextTimeSlot);
-            console.log(`Waiting next time slot in les then ${nextCleanSchedule}`);
+            // console.log(`Waiting next time slot in les then ${nextCleanSchedule}`);
 
             // process.exit();
-            setTimeout(() => {
-                this.scheduleRecord(null, nextSchedule.nextTS);
-            }, diffToNextTimeSlot * 1000);
+            if (!id) {
+                setTimeout(() => {
+                    this.scheduleRecord(null, nextSchedule.nextTS);
+                }, nextCleanSchedule);
+            }
+
+            // if id and no more time
+            // clear recorder
+            if (id) {
+                this.clearRecorder(id, true);
+            }
             return null;
         }
-
-        // ####### Sart Record
-        // get instance
+        
+        // get recording instance
         const recorder = this.getInstance(id);
-        recorder.start(recordDuration, $skipFirstSecs);
-        
-        // setRecorderToStream(
-        //     this.store,
-        //     this.streamID,
-        //     recorder.ID,
-        //     {
-        //         recordDuration,
-        //     },
-        // );
-
-        // console.log(this.stream);
-        
         
         // Schedule next record
         const nextScheduleSecs = diffToNextTimeSlot - this.settings.skipFirstSecs;
-        console.log('next record starts at: ', DateTime.local().plus({ seconds: nextScheduleSecs }).toRFC2822());
+        // console.log(
+        //     'next record starts at: ',
+        //     DateTime.local().plus({ seconds: nextScheduleSecs }).toRFC2822(),
+        // );
+        
         // ####### Schedule Next Record
         if (!id) {
             setTimeout(() => {
                 this.scheduleRecord(null, nextSchedule.nextTS);
             }, nextScheduleSecs * 1000);
+
+            // set new recorder to store
+            setRecorderToStore(
+                this.store,
+                {
+                    streamID: this.streamID,
+                    ID: recorder.ID,
+                    recordDuration,
+                    schedule: nextSchedule,
+                    basePath: null,
+                },
+            );
         }
 
-        console.log('END SCHEDULE=============================');
+        // update recorder if exists
+        if (id) {
+            updateRecorderToStore(
+                this.store,
+                {
+                    ID: recorder.ID,
+                    recordDuration,
+                    schedule: nextSchedule,
+                },
+            );
+        }
+
+        // ####### Sart Record
+        recorder.start(recordDuration, $skipFirstSecs);
+
+        // console.log('END SCHEDULE=============================');
     }
 
     // returns an existing or new instance
@@ -256,7 +390,7 @@ class Scheduler {
 
     // on record error
     onError = (instanceID) => {
-        // console.log(`[Schedule.js].record -> ${instanceID} recording ERROR`);
+        // // console.log(`[Schedule.js].record -> ${instanceID} recording ERROR`);
 
         // reset hooks of instance
         const instance = this.getInstance(instanceID);

@@ -4,10 +4,15 @@ import { execFile } from 'child_process';
 import { DateTime } from 'luxon';
 import * as helper from './helpers';
 
-// import redux selectors
+// import redux
+import * as actionTypes from '../redux/actions/actionTypes';
+
+import { updateRecorderFields } from '../redux/actions/transcoderActions';
+
 import { 
     getStreamFromStore,
     getRecorderSettingsFromStore,
+    getRecorderFromStore,
 } from '../redux/selectors/transcoderSelectors';
 
 class Recorder {
@@ -23,6 +28,7 @@ class Recorder {
     outputFileName = null;
     outputPath = null;
     finished = false;
+    nodeProcessHook = null;
 
     constructor(store, streamID, ID) {
         this.store = store;
@@ -30,57 +36,69 @@ class Recorder {
         this.ID = ID;
 
         this.updateStreamAndSettings();
+        
+        process.on('exit', this.cleanExit);
     }
 
     // Start ffmpeg recording
     start(recordDuration, skipFirstSecs = 0) {
         this.skipFirstSecs = skipFirstSecs;
         console.log('\n\nNew Record ====================================');
-        console.log('skipFirstSecs:', this.skipFirstSecs);
-        console.log('[Recorder.js].record() -> Now:\t\t\t', DateTime.local().toRFC2822());
-        console.log('[Recorder.js].record() -> Record ID:\t\t', this.ID);
-        console.log('[Recorder.js].record() -> Record Duration\t', recordDuration);
-        let dateTime = DateTime.local();
-        dateTime = dateTime.plus({ seconds: recordDuration });
-        console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
+        // console.log('skipFirstSecs:', this.skipFirstSecs);
+        // console.log('[Recorder.js].record() -> Now:\t\t\t', DateTime.local().toRFC2822());
+        // console.log('[Recorder.js].record() -> Record ID:\t\t', this.ID);
+        // console.log('[Recorder.js].record() -> Record Duration\t', recordDuration);
+
+        // let dateTime = DateTime.local();
+        // dateTime = dateTime.plus({ seconds: recordDuration });
+
+        // console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
     
         // construct pipeline
         const pipeline = this.createPipeline(recordDuration, this.skipFirstSecs);
         console.log('ffmpeg', pipeline.join(' '));
-    
-    
-        // initiate ffmpeg process
-        const ffmpegProcess = 
-            execFile(
-                'ffmpeg',
-                pipeline,
-                (error, stdout, stderr) => {
-                    if (this.finished) {
-                        return;
-                    }
-    
-                    if (error || stderr) {
-                        console.log('FFMPEG STDERR - errored exit');
-                    }
-                    
-                    if (!stderr && !error) {
-                        console.log('FFMPEG STDERR - clean exit');
-                        // this.dispatch(this.onSuccessHooks, [this]);
-                    }
-    
-                    console.log(stderr);
-                    console.log(error);
-                    console.log(stdout);
+        
+        const path = {
+            outputDirectory: this.outputDirectory,
+            outputPath: this.outputPath,
+            outputFileName: this.outputFileName,
+        };
+
+        console.log(path);
+        
+        // if base file path on store empty
+        // store filepath
+        // get recorder from store
+        const recorderInfo = getRecorderFromStore(this.store, this.ID);
+        if (!recorderInfo.basePath) {
+            updateRecorderFields(
+                this.store,
+                this.ID,
+                {
+                    basePath: path,
                 },
             );
-            
-        ffmpegProcess.on('exit', (code) => {
-            console.log(`\x1b[31mFFMPEG Exited with code ${code}!\x1b[0m`);
-        });
+        }
     
-        this.process = ffmpegProcess;
-    
-        process.on('exit', this.onExitHandler);
+        // initiate ffmpeg process
+        this.process = execFile(
+            'ffmpeg',
+            pipeline,
+            (error, stdout, stderr) => {
+                this.store.dispatch({
+                    type: actionTypes.FINISHED_RECORD,
+                    recorderID: this.ID,
+                    streamID: this.streamID,
+                    path,
+                    pipeline,
+                    payload: {
+                        error,
+                        stdout,
+                        stderr,
+                    },
+                });
+            },
+        );
     }
 
     // get streams from 
@@ -93,13 +111,19 @@ class Recorder {
     createFolderAndFileName() {
         // get ouput path
         let { outputDirectory } = this.stream;
+
+        const recorderInfo = getRecorderFromStore(this.store, this.ID);
+
+        console.log(recorderInfo);
+
         const dateStrFolder = DateTime.local().toFormat('yyyy-MM-dd');
         const dateStrFile = DateTime.local().toFormat('yyyyMMdd');
-        const timeStr = DateTime.local().toFormat('HH-mm-ss');
+        const timeStr = DateTime.local().plus({ seconds: this.skipFirstSecs }).toFormat('HH-mm-ss');
         // check if outputDirectory has backslash
         if (outputDirectory[outputDirectory.length - 1] !== '\\') {
             outputDirectory += '\\';
         }
+
         
         // add stream name to directory
         outputDirectory += `${this.stream.name}\\${dateStrFolder}\\`;
@@ -112,8 +136,13 @@ class Recorder {
         // create filename and set it
         this.outputFileName = `${this.stream.name}_${dateStrFile}_${timeStr}`;
 
+        console.log('skipFirstSecods', this.skipFirstSecs);
+
         this.outputPath = outputDirectory + this.outputFileName + this.settings.fileExtension;
 
+        console.log(this.outputPath);
+        
+        // process.exit();
         return this.outputPath;
     }
 
@@ -184,11 +213,15 @@ class Recorder {
     
     // stop ffmpeg recording instances
     stopRecord() {
-        // kill(this.process.pid, 'SIGINT');
+        if (this.process !== null) {
+            kill(this.process.pid, 'SIGINT');
+            this.process.pid = null;
+        }
     }
 
-    onExitHandler() {
+    cleanExit() {
         // this.stopRecord();
+        // process.removeListener('exit', this.cleanExit);
     }
 }
 

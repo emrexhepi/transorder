@@ -7,7 +7,7 @@
         "global": {
           "-loglevel": "error",
           "-hide_banner": "",
-          "-timeout": 30
+          "-timeout": 10
         },
         "inputPipe": {
           "-ss": "{skip seconds}",
@@ -31,7 +31,7 @@
         "skipFirstSecs": 10,
         "afterTimeSlotSecs": 0,
         "restartRecord": true,
-        "minDuration": 10,
+        "minDuration": 3,
         "reScheduleTimeout": 5
       }
     }
@@ -40,10 +40,10 @@
     {
       "id": "Klan_1",
       "name": "N24",
-      "input": "http://tv.balkanweb.com:8081/news24/livestream/chunks.m3u8?nimblesessionid=46906716",
+      "input": "http://tv.balkanweb.com:8081/news24/livestream/chunks.m3u8?nimblesessionid=48229920",
       "outputDirectory": "C:\\Users\\IG\\Desktop\\RecordsIPTV\\",
       "record": true,
-      "recDuration": 60
+      "recDuration": 30
     }
   ],
   "user": {},

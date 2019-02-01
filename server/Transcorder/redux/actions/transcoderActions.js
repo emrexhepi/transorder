@@ -46,7 +46,6 @@ export const loadStreamsToStore = (store, db) => {
         recording: false,
         recorders: {},
         error: '',
-        recordingLogs: {},
     };
 
     const objStreams = arrayToObject(streams, streamDefaults);
@@ -91,15 +90,43 @@ export const setStreamError = (store, streamID, errorMessage, record) => {
 // //////////////////////////////////////////////////
 // Recorder Actions
 
-export const setRecorderToStream = (store, streamID, recorderID, payload) => {
+export const setRecorderToStore = (store, payload) => {
     store.dispatch({
-        type: actionTypes.SET_RECORDER_TO_STREAM,
-        streamID,
-        recorderID,
+        type: actionTypes.SET_RECORDER,
         payload,
     });
-    console.log('Set Recroder: ');
-    console.log(streamID, recorderID, payload);
+};
+
+export const updateRecorderToStore = (store, payload) => {
+    store.dispatch({
+        type: actionTypes.UPDATE_RECORDER,
+        payload,
+    });
+};
+
+export const pushLogToRecorder = (store, ID, payload) => {
+    store.dispatch({
+        type: actionTypes.PUSH_LOG_TO_RECORDER,
+        ID,
+        payload,
+    });
+};
+
+export const updateRecorderFields = (store, ID, payload) => {
+    store.dispatch({
+        type: actionTypes.UPDATE_RECORDER_FIELD,
+        ID,
+        payload,
+    });
+};
+
+export const removeRecorderFromStore = (store, ID) => {
+    store.dispatch({
+        type: actionTypes.REMOVE_RECORDER,
+        payload: {
+            ID,
+        },
+    });
 };
 
 export default null;

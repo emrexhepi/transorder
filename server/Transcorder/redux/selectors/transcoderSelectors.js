@@ -22,4 +22,18 @@ export function getRecorderSettingsFromStore(store) {
     return state.transcoder.recorderSettings;
 }
 
+// ///////////////////////////////////////////////
+// RECORDER SELECTORS
+
+// returns recorder data from store
+export function getRecorderFromStore(store, recorderID) {
+    const state = store.getState();
+
+    if (state.transcoder.recorders[recorderID]) {
+        return state.transcoder.recorders[recorderID];
+    }
+
+    return {};
+}
+
 export default null;

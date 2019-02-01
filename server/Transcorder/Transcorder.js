@@ -35,11 +35,11 @@ class Transcorder {
         console.log('Transcoding is initiated!\n');
 
         // subscribe to redux store to log actions
-        this.unsubscribeStore = this.store.subscribe(() => {
-            console.log(store.getState());
-        });
+        // this.unsubscribeStore = this.store.subscribe(() => {
+        //     console.log(store.getState().lastAction);
+        // });
 
-        this.unsubscribeStore();
+        // this.unsubscribeStore();
         
         // load streams in to redux store
         loadStreamsToStore(store, this.db);

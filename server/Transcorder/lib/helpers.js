@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import util from 'util';
+import { exec } from 'child_process';
+
+const execCmd = util.promisify(exec);
 
 // return underline followed with a random string
 export const makeRandomID = () => `_${Math.random().toString(36).substr(2, 12)}`;
@@ -33,4 +37,66 @@ export const mkDirByPathSync = (targetDir, { isRelativeToScript = false } = {}) 
         return curDir;
     }, initDir);
 };
+
+// file media info
+export async function getMediaInfo(location) {
+    let execRes = null;
+    let fileExists = false;
+    let fileFormat = {};
+    let corrupted = false;
+    let response = {};
+    let duration = 0;
+    const command = `ffprobe -v quiet -print_format json -show_format ${location}`;
+    // location = "C:\\Users\\IG\\Desktop\\RecordsIPTV\\N24\\2019-01-18\\N24_20190118_12-41-50.mp4";
+    
+    // check if file exists
+    try {
+        const fileStats = fs.lstatSync(location);
+        fileExists = fileStats.isFile();
+    } catch (e) {
+        fileExists = false;
+    }
+
+    // get info as json
+    try {
+        execRes = await execCmd(
+            command,
+        );
+        execRes = JSON.parse(execRes.stdout);
+
+        if (execRes.format) {
+            fileFormat = execRes.format;
+            // eslint-disable-next-line prefer-destructuring
+            duration = fileFormat.duration;
+        }
+    } catch (e) {
+        execRes = JSON.parse(e.stdout);
+    }
+
+    // check if corrupted
+    if (fileExists && Object.keys(execRes).length === 0) {
+        corrupted = true;
+    }
+    
+    // compile respose
+    response = {
+        fileExists,
+        corrupted,
+        duration,
+        fileFormat,
+    };
+
+    return response;
+}
+
+// save object to json
+export function saveJsonObjToFile(obj, filePath) {
+    fs.writeFile(filePath, JSON.stringify(obj), (err) => {
+        if (err) {
+            console.log(err);
+        }
+    });
+}
+
+// default export
 export default mkDirByPathSync;
