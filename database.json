@@ -1,0 +1,13 @@
+{
+  "settings": [
+    {
+      "name": "FFMPEG",
+      "data": {
+        "size": "700x540",
+        "encoder": "omx",
+        "decoder": "omx",
+        "fileExtension": ".mp4"
+      }
+    }
+  ]
+}

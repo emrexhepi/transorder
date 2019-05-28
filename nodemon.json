@@ -1,10 +1,10 @@
 {
     "watch" : [
-        "./server/"
+        "./src/"
     ],
     "ignore" : [
         "./server/bin/",
         "./server/databases/"
     ],
-    "exec": "npm run build:server-dev && npm run start-inspect"
+    "exec": "node ./src/index.js"
   }
