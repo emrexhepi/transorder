@@ -4,7 +4,8 @@
   "description": "RaspberryPi based hardware accelerated FFMPEG transcoder and recorder",
   "main": "server/bin/server.js",
   "scripts": {
-    "start": "nodemon"
+    "start": "node ./src/index.js",
+    "start-dev": "nodemon"
   },
   "repository": {
     "type": "git",
