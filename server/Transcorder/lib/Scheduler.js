@@ -68,9 +68,6 @@ class Scheduler {
 
     // check for finished records
     async handleFinishRecords(action) {
-        //test
-        return;
-
         // var init
         let restartRecord = false;
         let log = {};

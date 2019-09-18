@@ -44,15 +44,15 @@ class Recorder {
     start(recordDuration, skipFirstSecs = 0) {
         this.skipFirstSecs = skipFirstSecs;
         console.log('\n\nNew Record ====================================');
-        // console.log('skipFirstSecs:', this.skipFirstSecs);
+        console.log('skipFirstSecs:', this.skipFirstSecs);
         // console.log('[Recorder.js].record() -> Now:\t\t\t', DateTime.local().toRFC2822());
         // console.log('[Recorder.js].record() -> Record ID:\t\t', this.ID);
         // console.log('[Recorder.js].record() -> Record Duration\t', recordDuration);
 
-        // let dateTime = DateTime.local();
-        // dateTime = dateTime.plus({ seconds: recordDuration });
-
-        // console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
+        let dateTime = DateTime.local();
+        console.log('[Recorder.js].record() -> Started at:\t', dateTime.toRFC2822());
+        dateTime = dateTime.plus({ seconds: recordDuration + this.skipFirstSecs });
+        console.log('[Recorder.js].record() -> Estimated to end at:\t', dateTime.toRFC2822());
     
         // construct pipeline
         const pipeline = this.createPipeline(recordDuration, this.skipFirstSecs);
@@ -64,7 +64,7 @@ class Recorder {
             outputFileName: this.outputFileName,
         };
 
-        console.log(path);
+        // console.log(path);
         
         // if base file path on store empty
         // store filepath
@@ -112,21 +112,21 @@ class Recorder {
         // get ouput path
         let { outputDirectory } = this.stream;
 
-        const recorderInfo = getRecorderFromStore(this.store, this.ID);
+        // const recorderInfo = getRecorderFromStore(this.store, this.ID);
 
-        console.log(recorderInfo);
+        // console.log(recorderInfo);
 
         const dateStrFolder = DateTime.local().toFormat('yyyy-MM-dd');
         const dateStrFile = DateTime.local().toFormat('yyyyMMdd');
         const timeStr = DateTime.local().plus({ seconds: this.skipFirstSecs }).toFormat('HH-mm-ss');
         // check if outputDirectory has backslash
-        if (outputDirectory[outputDirectory.length - 1] !== '\\') {
-            outputDirectory += '\\';
+        if (outputDirectory[outputDirectory.length - 1] !== '/') {
+            outputDirectory += '/';
         }
 
         
         // add stream name to directory
-        outputDirectory += `${this.stream.name}\\${dateStrFolder}\\`;
+        outputDirectory += `${this.stream.name}/${dateStrFolder}/`;
         
         // check and create folder
         helper.mkDirByPathSync(outputDirectory);
@@ -136,11 +136,11 @@ class Recorder {
         // create filename and set it
         this.outputFileName = `${this.stream.name}_${dateStrFile}_${timeStr}`;
 
-        console.log('skipFirstSecods', this.skipFirstSecs);
+        // console.log('skipFirstSecods', this.skipFirstSecs);
 
         this.outputPath = outputDirectory + this.outputFileName + this.settings.fileExtension;
 
-        console.log(this.outputPath);
+        // console.log(this.outputPath);
         
         // process.exit();
         return this.outputPath;
@@ -220,8 +220,8 @@ class Recorder {
     }
 
     cleanExit() {
-        // this.stopRecord();
-        // process.removeListener('exit', this.cleanExit);
+        this.stopRecord();
+        process.removeListener('exit', this.cleanExit);
     }
 }
 
