@@ -1,22 +1,27 @@
-module.exports = {
-  // settings
-  devtool: 'source-map',
+const path = require('path');
 
-  // modules
+module.exports = {
+  entry: './src/index.ts',
   module: {
     rules: [
       {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader'
-        }
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
       }
     ]
   },
+  resolve: {
+    // needed for ./src folder to be considered as root
+    modules: [path.join(__dirname, './src')],
 
-  // watch
-  watchOptions: {
-    ignored: /node_modules/
-  }
+    extensions: ['.tsx', '.ts', '.js']
+  },
+  output: {
+    filename: 'transcorder.js',
+    path: path.resolve(__dirname, 'dist')
+  },
+
+  // sourcempas
+  devtool: 'sourcemap',
 };

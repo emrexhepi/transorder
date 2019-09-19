@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      // output directory
+      "outDir": "./dist/",
+
+      // root import path
+      "baseUrl": "./src",
+
+      "noImplicitAny": false,
+
+      // export target for node 10
+      "lib": ["es2018"],
+      "module": "commonjs",
+      "target": "es2018",
+      "sourceMap": true,
+
+      // allow javascript files
+      "allowJs": true
+    }
+  }
