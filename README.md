@@ -1,9 +1,4 @@
-<p align="center">
-  <a href="" rel="noopener">
- <img width=200px height=200px src="https://i.imgur.com/6wj0hh6.jpg" alt="Project logo"></a>
-</p>
-
-<h3 align="center">transcorder</h3>
+<h3 align="center">Transcorder</h3>
 
 <div align="center">
 
@@ -41,74 +36,38 @@ Write about 1-2 paragraphs describing the purpose of your project.
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See [deployment](#deployment) for notes on how to deploy the project on a live system.
 
 ### Prerequisites
+Git, NodeJS and NPM required. Please install from official NodeJS website.
 
-What things you need to install the software and how to install them.
-
-```
-Give examples
-```
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running.
-
-Say what the step will be
-
+Clone Repository:
 ```
-Give the example
+git clone https://github.com/emrexhepi/transcorder/
+cd transcoder
 ```
 
-And repeat
-
+Then install:
 ```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo.
-
-## 🔧 Running the tests <a name = "tests"></a>
-
-Explain how to run the automated tests for this system.
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
+npm install
 ```
 
-### And coding style tests
+You are ready to run.
 
-Explain what these tests test and why
 
-```
-Give an example
-```
 
 ## 🎈 Usage <a name="usage"></a>
 
-Add notes about how to use the system.
+Start Development:
+```
+npm start
+```
 
-## 🚀 Deployment <a name = "deployment"></a>
+Build Transcorder:
+```
+npm build
+```
 
-Add additional notes about how to deploy this on a live system.
+## Debugging <a name="debugging"></a>
 
-## ⛏️ Built Using <a name = "built_using"></a>
-
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Express](https://expressjs.com/) - Server Framework
-- [VueJs](https://vuejs.org/) - Web Framework
-- [NodeJs](https://nodejs.org/en/) - Server Environment
-
-## ✍️ Authors <a name = "authors"></a>
-
-- [@kylelobo](https://github.com/kylelobo) - Idea & Initial work
-
-See also the list of [contributors](https://github.com/kylelobo/The-Documentation-Compendium/contributors) who participated in this project.
-
-## 🎉 Acknowledgements <a name = "acknowledgement"></a>
-
-- Hat tip to anyone whose code was used
-- Inspiration
-- References
+If you are using Visual Studio Code just press F5, there is lunch.json already in place.
