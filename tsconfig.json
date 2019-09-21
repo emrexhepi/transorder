@@ -15,6 +15,9 @@
       "sourceMap": true,
 
       // allow javascript files
-      "allowJs": true
+      "allowJs": true,
+
+      // other
+      "esModuleInterop": true
     }
   }

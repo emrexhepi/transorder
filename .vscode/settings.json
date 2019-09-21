@@ -1,3 +1,11 @@
 {
-    "eslint.enable": true
+    "eslint.enable": true,
+    "[typescript]": {
+      "editor.formatOnSave": false,
+    },
+    "eslint.autoFixOnSave": true,
+    "eslint.validate": [
+      "javascript",
+      { "language": "typescript", "autoFix": true },
+    ]
 }

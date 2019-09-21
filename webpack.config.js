@@ -13,13 +13,16 @@ module.exports = {
   },
   resolve: {
     // needed for ./src folder to be considered as root
-    modules: [path.join(__dirname, './src')],
+    modules: [
+      path.join(__dirname, './src'),
+      path.join(__dirname, './node_modules'),
+    ],
 
     extensions: ['.tsx', '.ts', '.js']
   },
   output: {
     filename: 'transcorder.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
   },
 
   // sourcempas

@@ -1,5 +1,6 @@
-import expDef from 'utils/expDef';
+import scheduler from 'libs/scheduler';
 
-console.log('TS TEST!');
+// start a schedule
+scheduler();
 
-expDef();
+console.log('test11');
