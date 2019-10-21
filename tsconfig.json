@@ -10,8 +10,8 @@
 
       // export target for node 10
       "lib": ["es2018"],
-      "module": "commonjs",
-      "target": "es2018",
+      "module": "es6",
+      "target": "es2015",
       "sourceMap": true,
 
       // allow javascript files

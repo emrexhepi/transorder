@@ -32,6 +32,9 @@
   },
   "homepage": "https://github.com/emrexhepi/transcorder#readme",
   "devDependencies": {
+    "@types/date-fns": "^2.6.0",
+    "@types/fs-extra": "^8.0.0",
+    "@types/node": "^12.7.7",
     "@types/string-template": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^2.3.0",
     "@typescript-eslint/parser": "^2.3.0",
@@ -53,6 +56,10 @@
     "webpack-dev-server": "^3.8.1"
   },
   "dependencies": {
+    "@types/luxon": "^1.15.2",
+    "fs-extra": "^8.1.0",
+    "luxon": "^1.19.3",
+    "path": "^0.12.7",
     "string-template": "^1.0.0"
   }
 }

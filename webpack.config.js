@@ -2,14 +2,15 @@ const path = require('path');
 
 module.exports = {
   entry: './src/index.ts',
+  target: 'node',
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/
-      }
-    ]
+        exclude: /node_modules/,
+      },
+    ],
   },
   resolve: {
     // needed for ./src folder to be considered as root
@@ -18,7 +19,7 @@ module.exports = {
       path.join(__dirname, './node_modules'),
     ],
 
-    extensions: ['.tsx', '.ts', '.js']
+    extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     filename: 'transcorder.js',
