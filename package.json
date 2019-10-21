@@ -38,6 +38,7 @@
     "@types/string-template": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^2.3.0",
     "@typescript-eslint/parser": "^2.3.0",
+    "const": "^1.0.0",
     "eslint": "^6.4.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
@@ -53,13 +54,14 @@
     "typescript-eslint": "0.0.1-alpha.0",
     "webpack": "^4.40.2",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.1"
+    "webpack-dev-server": "^3.8.1",
+    "@types/luxon": "^1.15.2"
   },
   "dependencies": {
-    "@types/luxon": "^1.15.2",
     "fs-extra": "^8.1.0",
     "luxon": "^1.19.3",
     "path": "^0.12.7",
-    "string-template": "^1.0.0"
+    "string-template": "^1.0.0",
+    "copy-webpack-plugin": "^5.0.4"
   }
 }

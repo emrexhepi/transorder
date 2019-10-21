@@ -18,6 +18,12 @@
       "allowJs": true,
 
       // other
-      "esModuleInterop": true
+      "esModuleInterop": true,
+
+      "allowSyntheticDefaultImports": true,
+
+      "moduleResolution": "node",
+
+      "resolveJsonModule": true,
     }
   }

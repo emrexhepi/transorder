@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import compile from 'string-template/compile';
 import recorder from 'libs/recorder';
-import ffprobe from 'libs/ffprobe';
+// import ffprobe from 'libs/ffprobe';
 
 /**
  * Config import
@@ -9,8 +9,8 @@ import ffprobe from 'libs/ffprobe';
 import {
   REC_DIRECTORY,
   REC_EXITENSION,
+  FFMPEG_COMMAND,
 } from 'config/index';
-import FFMPEG_COMMAND from 'config/FFMPEG_COMMAND';
 
 /**
  * Utils Import
@@ -52,13 +52,13 @@ const recordingTask = async (
   const folderName = `${recDirectory}/${dateNow}/${stream.id}/`;
 
   // generate file name
-  const timeSlotString = timeSlotDateTime.toFormat('HH-mm-ss');
+  const timeSlotString = timeSlotDateTime.toFormat('HHmmss');
   let fileName = `${stream.id}-${dateNow}-${timeSlotString}`;
 
   if (firstTime) {
     duration = timeslot.diffToNext;
     skipSeconds = 0;
-    fileName = `${fileName}_${DateTime.local().toFormat('HH-mm-ss')}`;
+    fileName = `${fileName}_${DateTime.local().toFormat('HHmmss')}`;
     console.log('firstime duration:', duration);
   }
 
