@@ -1,9 +1,0 @@
-{
-    "watch" : [
-        "./dist/transcorder.js"
-    ],
-    "ignore" : [
-        "./src/",
-        "./src/"
-    ]
-}
