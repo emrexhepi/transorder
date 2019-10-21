@@ -1,0 +1,7 @@
+{
+    "ffmpegCommand": "ffmpeg -loglevel fatal -y -i {inputPath} -ss {skip} -t {time} -c:v libx264 {outputPath}",
+    "minimumRecordTime": 20,
+    "consoleLog": false,
+    "recExtension": ".mp4",
+    "recDirectory": "D:\\IG\\RPI\\records"
+}

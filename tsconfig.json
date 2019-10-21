@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+      // output directory
+      "outDir": "./dist/",
+
+      // root import path
+      "baseUrl": "./src",
+
+      "noImplicitAny": false,
+
+      // export target for node 10
+      "lib": ["es2018"],
+      "module": "es6",
+      "target": "es2015",
+      "sourceMap": true,
+
+      // allow javascript files
+      "allowJs": true,
+
+      // other
+      "esModuleInterop": true,
+
+      "allowSyntheticDefaultImports": true,
+
+      "moduleResolution": "node",
+
+      "resolveJsonModule": true,
+    }
+  }
