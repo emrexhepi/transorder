@@ -71,3 +71,7 @@ npm build
 ## Debugging <a name="debugging"></a>
 
 If you are using Visual Studio Code just press F5, there is lunch.json already in place.
+
+## pm2 commands
+`pm2 start dist/transcorder.js --watch`
+
