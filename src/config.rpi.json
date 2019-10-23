@@ -1,5 +1,5 @@
 {
-    "ffmpegCommand": "ffmpeg -loglevel fatal -i {inputPath} -ss {skip} -t {time} -b:v 400K -c:v h264_omx -b:a 128K -c:a aac -ar 44100 -y {outputPath}",
+    "ffmpegCommand": "ffmpeg -loglevel fatal -i {inputPath} -ss {skip} -t {time} -b:v 400K -b:a 128K -c:a aac -ar 44100 -y {outputPath}",
     "minimumRecordTime": 20,
     "consoleLog": false,
     "recExtension": ".mp4",
