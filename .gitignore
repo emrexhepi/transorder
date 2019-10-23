@@ -6,3 +6,4 @@ coverage
 .idea
 
 src/config.json
+src/streams.json
