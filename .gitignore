@@ -4,3 +4,5 @@ records
 coverage
 .env
 .idea
+
+src/config.json
