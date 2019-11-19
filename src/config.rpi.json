@@ -1,5 +1,5 @@
 {
-    "ffmpegCommand": "ffmpeg -loglevel fatal -reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -i {inputPath} -err_detect ignore_err -ss {skip} -t {time} -b:v 400K -b:a 128K -c:a aac -ar 44100 -y {outputPath}",
+    "ffmpegCommand": "ffmpeg -loglevel fatal -reconnect 1 -reconnect_streamed 1 -reconnect_at_eof -reconnect_delay_max 5 -i {inputPath} -err_detect ignore_err -ss {skip} -t {time} -b:v 400K -b:a 128K -c:a aac -ar 44100 -y {outputPath}",
     "minimumRecordTime": 20,
     "consoleLog": false,
     "recExtension": ".mp4",
