@@ -35,8 +35,8 @@ module.exports = {
 
   plugins: [
     new CopyPlugin([
-      { from: './src/streams.json', to: 'streams.json' },
-      { from: './src/config.json', to: 'config.json' },
+      { from: './src/streams.example.json', to: 'streams.example.json' },
+      { from: './src/config.rpi.json', to: 'config.rpi.json' },
     ]),
   ],
 
