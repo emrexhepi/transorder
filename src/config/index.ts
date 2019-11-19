@@ -1,13 +1,15 @@
+import loadJson from 'utils/loadJson';
+
 /**
  * Import config
  */
-import {
+const {
   ffmpegCommand,
   minimumRecordTime,
   consoleLog,
   recExtension,
   recDirectory,
-} from 'config.json';
+} = loadJson('config.json');
 
 
 /**

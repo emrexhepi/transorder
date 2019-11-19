@@ -1,23 +1,15 @@
 import taskScheduler from 'libs/taskScheduler';
+import loadJson from 'utils/loadJson';
 
 /**
- * Import streams
+ * Load streams from json file
  */
-import { streams } from 'streams.json';
+const { streams } = loadJson('streams.json');
 
+/**
+ * Spin a task scheduler
+ * for each stream
+ */
 streams.forEach((stream) => {
   taskScheduler(stream);
 });
-
-/**
- * Create Streams
- */
-// const stream: IStream = {
-//   id: 'temp',
-//   link: 'http://192.168.30.8:7800/temp/index.m3u8',
-//   duration: 60,
-//   skipSeconds: 10,
-// };
-
-// // start a schedule
-// taskScheduler(stream);

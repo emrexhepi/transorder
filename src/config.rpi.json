@@ -3,5 +3,5 @@
     "minimumRecordTime": 20,
     "consoleLog": false,
     "recExtension": ".mp4",
-    "recDirectory": "/mnt/nas1"
+    "recDirectory": "/mnt/nas1/records"
 }
