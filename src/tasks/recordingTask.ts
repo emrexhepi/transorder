@@ -47,7 +47,7 @@ const recordingTask = async (
 
   // generate folder name
   const recDirectory = stream.dir || REC_DIRECTORY;
-  const dateNow = DateTime.local().toFormat('ddMMyyyy');
+  const dateNow = DateTime.local().toFormat('yyyyMMdd');
   const timeSlotDateTime = convertSecondsToDateTime(currentTimeSlot);
   const folderName = `${recDirectory}/${dateNow}/${stream.id}/`;
 
@@ -58,8 +58,8 @@ const recordingTask = async (
   if (firstTime) {
     duration = timeslot.diffToNext;
     skipSeconds = 0;
-    fileName = `${fileName}_${DateTime.local().toFormat('HHmmss')}`;
-    console.log('firstime duration:', duration);
+    fileName = `${fileName}-${DateTime.local().toFormat('HHmmss')}`;
+    // console.log('firstime duration:', duration);
   }
 
   /**

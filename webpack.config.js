@@ -3,7 +3,7 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: path.resolve(__dirname, './src/index.ts'),
   target: 'node',
   module: {
     rules: [
@@ -25,13 +25,18 @@ module.exports = {
   },
 
   output: {
+    path: path.join(__dirname, 'dist'),
     filename: 'transcorder.js',
-    path: path.resolve(__dirname, 'dist'),
+  },
+
+  node: {
+    __dirname: false,
   },
 
   plugins: [
     new CopyPlugin([
-      { from: './src/config.json', to: 'config.json' },
+      { from: './src/streams.example.json', to: 'streams.example.json' },
+      { from: './src/config.rpi.json', to: 'config.rpi.json' },
     ]),
   ],
 

@@ -1,6 +1,8 @@
 node_modules
-dist
 records
 coverage
 .env
 .idea
+
+src/config.json
+src/streams.json
